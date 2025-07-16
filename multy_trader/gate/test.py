@@ -56,4 +56,4 @@ def get_ordet_book():
     except ApiException as e:
         print("Exception when calling SpotApi->list_order_book: %s\n" % e)
 
-print(get_ordet_book())
+print(get_pairs())
