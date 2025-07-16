@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'trader.apps.TraderConfig'
+    'trader.apps.TraderConfig',
+    'gate.apps.GateConfig',
 ]
 
 MIDDLEWARE = [
