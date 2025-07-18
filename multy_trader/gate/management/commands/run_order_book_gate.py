@@ -1,11 +1,11 @@
+from gate.models import OrderBook, WaletPairs
+from django.core.management.base import BaseCommand
 import logging
 import json
 import asyncio
 import websockets
 from collections import OrderedDict
 from asgiref.sync import sync_to_async
-from gate.models import OrderBook, WaletPairs
-from django.core.management.base import BaseCommand
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class OrderBookSocket:
     def __init__(self):
-        self.order_book = {'bids': {}, 'asks': {}}
+        self.order_book = {'bids': OrderedDict(), 'asks': OrderedDict()}
         self.last_update_id = None
 
     async def subscribe_to_order_book(self, uri):
@@ -27,26 +27,46 @@ class OrderBookSocket:
             }
             await websocket.send(json.dumps(subscription_message))
             response = await websocket.recv()
-            logger.info("Subscription response:", response)
+            logger.info(f"Subscription response: {response}")
 
             while True:
                 message = await websocket.recv()
                 await self.process_update(json.loads(message))
+                self.print_order_book()
+
+    def print_order_book(self):
+        """Выводит стакан в терминал в ASCII-формате"""
+        print("\n" + "=" * 60)
+        print(f"BTC/USDT Order Book (Spread: {self.get_spread():.2f})")
+        print("-" * 60)
+        print(f"{'Bids':^30} | {'Asks':^30}")
+        print("-" * 60)
+
+        bids = list(self.order_book['bids'].items())[:10]
+        asks = list(self.order_book['asks'].items())[:10]
+
+        for i in range(10):
+            bid = bids[i] if i < len(bids) else ("", "")
+            ask = asks[i] if i < len(asks) else ("", "")
+
+            bid_str = f"{bid[0]:.2f} ({bid[1]:.4f})" if bid[0] else ""
+            ask_str = f"{ask[0]:.2f} ({ask[1]:.4f})" if ask[0] else ""
+
+            print(f"{bid_str:>30} | {ask_str:<30}")
+
+    def get_spread(self):
+        if not self.order_book['bids'] or not self.order_book['asks']:
+            return 0
+        return next(iter(self.order_book['asks'])) - next(iter(self.order_book['bids']))
 
     async def process_update(self, update):
         """Обработка обновления стакана"""
-        logger.info("Raw update received:", update)
-
         try:
-            # Извлекаем данные из результата
             result = update.get('result')
-            if result is None:
-                logger.error("Invalid update format, result missing:", update)
+            if not result:
                 return
 
-            # Проверяем необходимые поля
             if not all(k in result for k in ['U', 'u', 'b', 'a']):
-                logger.error("Invalid update structure:", result)
                 return
 
             if self.last_update_id is None:
@@ -60,56 +80,50 @@ class OrderBookSocket:
                 self.apply_update(result['b'], 'bids')
                 self.apply_update(result['a'], 'asks')
                 self.last_update_id = result['u']
-
-                if self.order_book['bids'] and self.order_book['asks']:
-                    top_bid = next(iter(self.order_book['bids']))
-                    top_ask = next(iter(self.order_book['asks']))
-                    print(f"Update ID: {result['u']} | Bid: {top_bid} | Ask: {top_ask} | Spread: {top_ask - top_bid:.2f}")
-                    spread = top_ask - top_bid
-                    await self.save_order_book_to_db(top_bid, top_ask, spread)
-            else:
-                logger.error(f"Out of sync! Local ID: {self.last_update_id}, Update IDs: {result['U']}-{result['u']}")
+                await self.save_to_db()
 
         except Exception as e:
-            logger.error(f"Update processing failed: {str(e)}")
-
+            logger.error(f"Error processing update: {e}")
 
     def apply_update(self, updates, side):
-        """Обновление локального стакана"""
+        """Обновление стакана"""
         for update in updates:
             try:
                 price = float(update['p'])
                 size = float(update['s'])
-            except (ValueError, TypeError) as e:
-                logger.error(f"Could not convert price or size to float. Update: {update}. Error: {e}")
+            except (ValueError, TypeError):
                 continue
 
             if size == 0:
-                if price in self.order_book[side]:
-                    del self.order_book[side][price]
+                self.order_book[side].pop(price, None)
             else:
                 self.order_book[side][price] = size
-        if side == 'bids':
-            self.order_book[side] = OrderedDict(sorted(self.order_book[side].items(), reverse=True))
-        else:
-            self.order_book[side] = OrderedDict(sorted(self.order_book[side].items()))
 
-    async def save_order_book_to_db(self, top_bid, top_ask, spread):
-        await sync_to_async(OrderBook.objects.create)(
-            symbol='BTC_USDT',
-            current_bid=top_bid,
-            current_ask=top_ask,
-            spread=spread
+        # Сортировка
+        self.order_book[side] = OrderedDict(
+            sorted(self.order_book[side].items(), reverse=(side == 'bids'))
         )
+
+    async def save_to_db(self):
+        if self.order_book['bids'] and self.order_book['asks']:
+            top_bid = next(iter(self.order_book['bids']))
+            top_ask = next(iter(self.order_book['asks']))
+            await sync_to_async(OrderBook.objects.create)(
+                symbol='BTC_USDT',
+                current_bid=top_bid,
+                current_ask=top_ask,
+                spread=top_ask - top_bid
+            )
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        self.order_book()
+        self.run_order_book()
 
-    def order_book(self):
+    def run_order_book(self):
         uri = "wss://fx-ws.gateio.ws/v4/ws/usdt"
         order_book = OrderBookSocket()
-        asyncio.run(order_book.subscribe_to_order_book(uri))
-
-
+        try:
+            asyncio.run(order_book.subscribe_to_order_book(uri))
+        except KeyboardInterrupt:
+            print("\nOrder book monitoring stopped")

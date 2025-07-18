@@ -4,42 +4,20 @@ from django.db.models import (
     DateTimeField,
     UUIDField,
 )
-from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
-
-
-class CustomUser(AbstractUser):
-    walet_pairs = models.ManyToManyField(
-        'WaletPairs',
-        related_name='users',
-        verbose_name='Валютные пары',
-        blank=True
-    )
-    groups = models.ManyToManyField(
-        Group,
-        related_name='customuser_set',
-        verbose_name='Группы',
-        blank=True,
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name='customuser_set',
-        verbose_name='Разрешения',
-        blank=True,
-    )
 
 
 class WaletPairs(models.Model):
     id = UUIDField(
         default=uuid4,
-        help_text="Уникальный идентификатор публикации.",
+        help_text="Уникальный идентификатор",
         primary_key=True,
-        verbose_name="ID публикации.",
+        verbose_name="ID",
     )
     slug = CharField(
-        "Заголовок рубрики.",
+        "Слаг пары",
         max_length=255,
-        help_text="Заголовок рубрики",
+        help_text="Слаг пары",
     )
     created_at = DateTimeField(
         auto_now_add=True,
