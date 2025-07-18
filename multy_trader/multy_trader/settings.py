@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'trader.apps.TraderConfig',
     'gate.apps.GateConfig',
+    'mexc.apps.MexcConfig',
 ]
 
 MIDDLEWARE = [

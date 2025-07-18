@@ -13,6 +13,7 @@ dependencies = [
     "requests (>=2.32.4,<3.0.0)",
     "gate-api (>=6.100.2,<7.0.0)",
     "websocket-client (>=1.8.0,<2.0.0)",
+    "protobuf (>=6.31.1,<7.0.0)",
 ]
 
 
