@@ -54,3 +54,4 @@ class OrderBook(models.Model):
 
     def __str__(self):
         return f'{self.symbol} - Bid: {self.current_bid}, Ask: {self.current_ask}, Spread: {self.spread}'
+        
