@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'trader.apps.TraderConfig',
+    'exchange.apps.ExchangeConfig',
+    'purchase.apps.PurchaseConfig',
     'gate.apps.GateConfig',
     'mexc.apps.MexcConfig',
 ]

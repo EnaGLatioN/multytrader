@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import (
     Model,
+    CASCADE,
     ManyToManyField,
     CharField,
     PositiveIntegerField,
@@ -10,8 +11,10 @@ from django.db.models import (
     GenericIPAddressField,
     BooleanField,
     DateTimeField,
-    UniqueConstraint
+    UniqueConstraint,
+    ForeignKey
 )
+from exchange.models import Exchange
 
 
 class Proxy(Model):
@@ -110,6 +113,12 @@ class ExchangeAccount(Model):
         related_name="exchange_account_proxy",
         verbose_name="Прокси",
     )
+    exchange = ForeignKey(
+        Exchange,
+        on_delete=CASCADE,
+        related_name="exchange_account_exchange",
+        verbose_name="Биржа",
+    )
 
     class Meta:
         db_table = "exchange_account"
@@ -122,27 +131,27 @@ class ExchangeAccount(Model):
 
 
 class CustomUser(AbstractUser):
-    walet_pairs_gate = ManyToManyField(
-        'gate.WaletPairs',
-        related_name='users',
-        verbose_name='Валютные пары',
-        blank=True
-    )
-    walet_pairs_mexc = ManyToManyField(
-        'mexc.WaletPairsMexc',
-        related_name='users_mexc',
-        verbose_name='Валютные пары',
-        blank=True
-    )
+    #walet_pairs_gate = ManyToManyField(
+    #    'gate.WaletPairs',
+    #    related_name='users',
+    #    verbose_name='Валютные пары',
+    #    blank=True
+    #)
+    #walet_pairs_mexc = ManyToManyField(
+    #    'mexc.WaletPairsMexc',
+    #    related_name='users_mexc',
+    #    verbose_name='Валютные пары',
+    #    blank=True
+    #)
     groups = ManyToManyField(
         Group,
-        related_name='customuser_set',
+        related_name='customuser_groups',
         verbose_name='Группы',
         blank=True,
     )
     user_permissions = ManyToManyField(
         Permission,
-        related_name='customuser_set',
+        related_name='customuser_permissions',
         verbose_name='Разрешения',
         blank=True,
     )

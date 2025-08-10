@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class TraderConfig(AppConfig):
+class ExchangeConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'trader'
-    verbose_name = "Трейдеры"
+    name = 'exchange'
+    verbose_name = "Биржи"

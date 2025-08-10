@@ -15,12 +15,12 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {
-            'fields': ('walet_pairs_gate', 'walet_pairs_mexc', 'exchange_account', 'maximum_amount'),
+            'fields': ('exchange_account', 'maximum_amount'),
         }),
     )
     fieldsets = UserAdmin.fieldsets + (
         (None, {
-            'fields': ('walet_pairs_gate', 'walet_pairs_mexc', 'exchange_account', 'maximum_amount'),
+            'fields': ('exchange_account', 'maximum_amount'),
         }),
     )
 
