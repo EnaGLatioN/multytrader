@@ -1,4 +1,5 @@
 from uuid import uuid4
+from encrypted_model_fields.fields import EncryptedCharField
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import (
@@ -44,10 +45,10 @@ class Proxy(Model):
         verbose_name="Логин",
         max_length=128
     )
-    password = CharField(
+    password = EncryptedCharField(
         help_text="Пароль для аутентификации",
         verbose_name="Пароль",
-        max_length=128
+        max_length=250
     )
     is_active = BooleanField(
         default=True,
@@ -84,19 +85,19 @@ class ExchangeAccount(Model):
         primary_key=True,
         verbose_name="ID",
     )
-    #api_key = CharField или EncryptedCharField(
-    #    help_text="API ключ. Без привязки к IP срок жизни ключа 90 дней.",
-    #    verbose_name="API ключ"
-    #)
+    api_key = EncryptedCharField(
+        help_text="API ключ",
+        verbose_name="API ключ",
+    )
     login = CharField(
         help_text="Логин для аутентификации",
         verbose_name="Логин",
         max_length=128
     )
-    password = CharField(
+    password = EncryptedCharField(
         help_text="Пароль для аутентификации",
         verbose_name="Пароль",
-        max_length=128
+        max_length=250
     )
     is_active = BooleanField(
         default=True,
@@ -127,8 +128,8 @@ class ExchangeAccount(Model):
         ordering = ["login"]
 
     def __str__(self):
-        return f"{self.login}"
-
+        return f'{self.login} {self.exchange}'
+    
 
 class CustomUser(AbstractUser):
     #walet_pairs_gate = ManyToManyField(
@@ -160,6 +161,7 @@ class CustomUser(AbstractUser):
         related_name="user_exchange_account",
         verbose_name="Биржевый аккаунт",
         blank=True,
+        null=True,
     )
     maximum_amount = PositiveIntegerField(
         verbose_name="Максимальная сумма",

@@ -4,8 +4,8 @@ from trader.admin import my_admin_site
 
 
 class PurchaseAdmin(ModelAdmin):
-    fields = ('profit', 'entry_rate', 'exit_course', 'is_active')
-    list_display = ('profit', 'entry_rate', 'exit_course', 'is_active')
+    fields = ('profit', 'entry_course', 'exit_course', 'is_active')
+    list_display = ('profit', 'entry_course', 'exit_course', 'is_active')
     list_filter = ('is_active',)
     #search_fields = ('slug',)
     #search_help_text = 'Введите валютную пару для поиска'

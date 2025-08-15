@@ -26,7 +26,7 @@ class Purchase(Model):
         help_text="Маржа",
         verbose_name="Маржа"
     )
-    entry_rate = PositiveIntegerField(
+    entry_course = PositiveIntegerField(
         help_text="Курс входа",
         verbose_name="Курс входа"
     )
