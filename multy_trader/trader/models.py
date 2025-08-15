@@ -165,4 +165,5 @@ class CustomUser(AbstractUser):
         verbose_name="Максимальная сумма",
         help_text="Максимальная сумма в рублях",
         blank=True,
+        null = True,
     )

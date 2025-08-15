@@ -28,7 +28,7 @@ DEBUG = cnf("DEBUG")
 
 ALLOWED_HOSTS = ["*"]
 
-#AUTH_USER_MODEL = 'trader.CustomUser'
+AUTH_USER_MODEL = 'trader.CustomUser'
 
 
 # Application definition
