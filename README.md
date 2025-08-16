@@ -1,6 +1,5 @@
 # multytrader
 ![alt text](image.png)
-
 не забыть для мекса
 sudo apt install protobuf-compiler
 

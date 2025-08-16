@@ -4,7 +4,8 @@ from django.db.models import (
     CharField,
     DateTimeField,
     UUIDField,
-    ManyToManyField
+    ManyToManyField,
+    PositiveIntegerField
 )
 from django.db import models
 
@@ -20,6 +21,10 @@ class WalletPair(Model):
         "Слаг пары",
         max_length=255,
         help_text="Слаг пары",
+    )
+    price = PositiveIntegerField(
+        help_text="Стоимость",
+        verbose_name="Стоимость"
     )
     created_at = DateTimeField(
         auto_now_add=True,
