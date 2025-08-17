@@ -1,34 +1,32 @@
 import decouple
 from gate_api import ApiClient, Configuration, FuturesApi
 import time
+from trade.models import TradeType
+from multy_trader.settings import GATE_HOST
 
 
-# Конфигурация API
-API_KEY = decouple.config("GATE_KEY")
-SECRET_KEY = decouple.config("GATE_SECRET_KEY")
+def gate_buy_futures_contract(entry,order):
+    """
+    Функция для покупки фьючерсного контракта на GATE
+    """
 
-config = Configuration(
-    host="https://api.gateio.ws/api/v4",
-    key=API_KEY,
-    secret=SECRET_KEY
-)
+    contract=entry.wallet_pair.slug # Например, BTC_USDT для бессрочного контракта
+    amount=entry.count if order.trade_type == TradeType.LONG else -entry.count # Количество BTC
+    price=order.entry_course  # None для рыночного ордера
+    take_profit=entry.exit_course # Курс выхода
+    order_type="market"  # "market" или "limit"
 
-# Создаем клиент API
-futures_api = FuturesApi(ApiClient(config))
-
-
-def buy_futures_contract(
-        contract="BTC_USDT",  # Например, BTC_USDT для бессрочного контракта
-        amount=1,  # Количество BTC
-        price=None,  # None для рыночного ордера
-        leverage=10,  # Плечо
-        take_profit=None,
-        order_type="market"  # "market" или "limit"
-):
     try:
+        config = Configuration(
+            host=GATE_HOST,
+            key=order.exchange_account.api_key,
+            secret=order.exchange_account.secret_key
+        )
+        futures_api = FuturesApi(ApiClient(config))
+
         futures_api.update_position_leverage(
             contract=contract,
-            leverage=str(leverage),
+            leverage=str(entry.shoulder),
             settle='usdt'  # Для USDT-маркированных контрактов
         )
 

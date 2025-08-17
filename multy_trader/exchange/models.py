@@ -5,7 +5,8 @@ from django.db.models import (
     DateTimeField,
     UUIDField,
     ManyToManyField,
-    PositiveIntegerField
+    PositiveIntegerField,
+    BooleanField
 )
 from django.db import models
 
@@ -26,13 +27,18 @@ class WalletPair(Model):
         help_text="Стоимость",
         verbose_name="Стоимость"
     )
+    is_active = BooleanField(
+        default=True,
+        help_text="Активна ли валютная пара",
+        verbose_name="Активность"
+    )
     created_at = DateTimeField(
         auto_now_add=True,
         help_text="Дата создания",
         verbose_name="Дата создания",
     )
     class Meta:
-        db_table = "walet_pair"
+        db_table = "wallet_pair"
         verbose_name = "Валютная пара"
         verbose_name_plural = "Валютные пары"
         ordering = ("slug",)

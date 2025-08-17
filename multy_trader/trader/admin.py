@@ -16,17 +16,19 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {
-            'fields': ('exchange_account', 'maximum_amount'),
+            'fields': ('exchange_account', 'wallet_pairs', 'maximum_amount'),
         }),
     )
     fieldsets = UserAdmin.fieldsets + (
          ('Дополнительная информация', {
-             'fields': ('exchange_account', 'maximum_amount'),
+             'fields': ('exchange_account', 'wallet_pairs', 'maximum_amount'),
          }),
     )
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == 'exchange_account':
             kwargs["widget"] = FilteredSelectMultiple('Биржевые аккаунты', is_stacked=False)
+        if db_field.name == 'wallet_pairs':
+            kwargs["widget"] = FilteredSelectMultiple('Валютные пары', is_stacked=False)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -38,7 +40,7 @@ class CustomProxy(ModelAdmin):
 
 
 class CustomExchangeAccount(ModelAdmin):
-    fields = ('login', 'password', 'api_key', 'exchange', 'proxies', 'is_active')
+    fields = ('login', 'password', 'api_key', 'secret_key','exchange', 'proxies', 'is_active')
     list_display = ('login', 'is_active')
     search_fields = ('login',)
     search_help_text = 'Введите логин'

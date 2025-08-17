@@ -24,6 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = cnf("SECRET_KEY")
 FIELD_ENCRYPTION_KEY = cnf("FERNET_KEY")
 
+GATE_HOST = cnf("GATE_HOST")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = cnf("DEBUG")
 
@@ -43,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'trader.apps.TraderConfig',
     'exchange.apps.ExchangeConfig',
-    'purchase.apps.PurchaseConfig',
+    'trade.apps.TradeConfig',
     'gate.apps.GateConfig',
     'mexc.apps.MexcConfig',
 ]

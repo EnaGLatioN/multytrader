@@ -10,12 +10,13 @@ from django.db.models import (
     ForeignKey,
     CASCADE
 )
-from .services import buy_futures_contract
+#from .services import buy_futures_contract
 from django.core.validators import MinValueValidator
 from trader.models import ExchangeAccount
+from exchange.models import WalletPair
 
 
-class TradeRype(TextChoices):
+class TradeType(TextChoices):
     LONG = "LONG", "Лонг"
     SHORT = "SHORT", "Шорт"
 
@@ -46,6 +47,12 @@ class Entry(Model):
     exit_course = PositiveIntegerField(
         help_text="Курс выхода",
         verbose_name="Курс выхода"
+    )
+    wallet_pair = ForeignKey(
+        WalletPair,
+        on_delete=CASCADE,
+        related_name="entry_wallet_pair",
+        verbose_name="Валютная пара",
     )
     is_active = BooleanField(
         default=True,
@@ -79,7 +86,7 @@ class Order(Model):
         verbose_name="Курс входа"
     )
     trade_type = CharField(
-        choices=TradeRype.choices,
+        choices=TradeType.choices,
         help_text="Тип сделки",
         verbose_name="Тип сделки",
     )
@@ -104,6 +111,6 @@ class Order(Model):
     def __str__(self):
         return f'{self.entry_course}'
 
-    def save(self, *args, **kwargs):
+    #def save(self, *args, **kwargs):
         # buy_futures_contract(self.exchange_account.exchange.wallet_pairs.slug, )
-        super().save(*args, **kwargs)
+    #    super().save(*args, **kwargs)

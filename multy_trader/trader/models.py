@@ -15,7 +15,7 @@ from django.db.models import (
     UniqueConstraint,
     ForeignKey
 )
-from exchange.models import Exchange
+from exchange.models import Exchange, WalletPair
 
 
 class Proxy(Model):
@@ -89,6 +89,10 @@ class ExchangeAccount(Model):
         help_text="API ключ",
         verbose_name="API ключ",
     )
+    secret_key = EncryptedCharField(
+        help_text="Секретный ключ",
+        verbose_name="Секретный ключ",
+    )
     login = CharField(
         help_text="Логин для аутентификации",
         verbose_name="Логин",
@@ -132,18 +136,13 @@ class ExchangeAccount(Model):
     
 
 class CustomUser(AbstractUser):
-    #walet_pairs_gate = ManyToManyField(
-    #    'gate.WaletPairs',
-    #    related_name='users',
-    #    verbose_name='Валютные пары',
-    #    blank=True
-    #)
-    #walet_pairs_mexc = ManyToManyField(
-    #    'mexc.WaletPairsMexc',
-    #    related_name='users_mexc',
-    #    verbose_name='Валютные пары',
-    #    blank=True
-    #)
+    wallet_pairs = ManyToManyField(
+        WalletPair,
+        related_name='customuser_wallet_pairs',
+        verbose_name='Валютные пары',
+        blank=True,
+        null=True,
+    )
     groups = ManyToManyField(
         Group,
         related_name='customuser_groups',
