@@ -19,9 +19,10 @@ futures_api = FuturesApi(ApiClient(config))
 
 def buy_futures_contract(
         contract="BTC_USDT",  # Например, BTC_USDT для бессрочного контракта
-        amount=0.001,  # Количество BTC
+        amount=1,  # Количество BTC
         price=None,  # None для рыночного ордера
         leverage=10,  # Плечо
+        take_profit=None,
         order_type="market"  # "market" или "limit"
 ):
     try:
@@ -41,6 +42,18 @@ def buy_futures_contract(
             settle="USDT",
             text=f"api-buy-{int(time.time())}"
         )
+        if take_profit:
+            close_order = FuturesApi.FuturesOrder(
+                contract=contract,
+                size=amount,  # Такой же объем
+                price=str(take_profit),
+                time_in_force="gtc",
+                close=True,  # Закрытие позиции
+                reduce_only=True,  # Только уменьшение позиции
+                settle="USDT",
+                text=f"tp-{int(time.time())}"
+            )
+            futures_api.create_futures_order(close_order)
         response = futures_api.create_futures_order(order)
         print("Ордер размещен:", response)
         return response
