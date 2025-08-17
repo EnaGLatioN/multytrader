@@ -1,19 +1,17 @@
 from uuid import uuid4
 from django.db.models import (
     Model,
-    ManyToManyField,
     CharField,
     PositiveIntegerField,
     UUIDField,
-    GenericIPAddressField,
     BooleanField,
     DateTimeField,
-    UniqueConstraint,
     TextChoices,
     ForeignKey,
     CASCADE
 )
-from django.core.validators import MaxValueValidator, MinValueValidator
+from .services import buy_futures_contract
+from django.core.validators import MinValueValidator
 from trader.models import ExchangeAccount
 
 
@@ -105,3 +103,7 @@ class Order(Model):
 
     def __str__(self):
         return f'{self.entry_course}'
+
+    def save(self, *args, **kwargs):
+        # buy_futures_contract(self.exchange_account.exchange.wallet_pairs.slug, )
+        super().save(*args, **kwargs)
