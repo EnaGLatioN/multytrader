@@ -110,7 +110,3 @@ class Order(Model):
 
     def __str__(self):
         return f'{self.entry_course}'
-
-    #def save(self, *args, **kwargs):
-        # buy_futures_contract(self.exchange_account.exchange.wallet_pairs.slug, )
-    #    super().save(*args, **kwargs)

@@ -28,6 +28,9 @@ GATE_HOST = cnf("GATE_HOST")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = cnf("DEBUG")
 
+MEXC_API_KEY=cnf("MEXC_API_KEY")
+MEXC_API_SECRET=cnf("MEXC_API_SECRET")
+
 ALLOWED_HOSTS = ["*"]
 
 AUTH_USER_MODEL = 'trader.CustomUser'

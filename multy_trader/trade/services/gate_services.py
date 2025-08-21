@@ -59,14 +59,3 @@ def gate_buy_futures_contract(entry,order):
     except Exception as e:
         print("Ошибка при размещении ордера:", e)
         return None
-
-
-# x = buy_futures_contract(
-#     contract="BTC_USDT",
-#     amount=0.001,
-#     price=None,  # Рыночный ордер
-#     leverage=1,
-#     order_type="market"
-# )
-# print("=" * 100)
-# print(x)
