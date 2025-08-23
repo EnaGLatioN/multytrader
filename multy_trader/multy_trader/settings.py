@@ -27,7 +27,8 @@ FIELD_ENCRYPTION_KEY = cnf("FERNET_KEY")
 GATE_HOST = cnf("GATE_HOST")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = cnf("DEBUG")
-
+GATE_KEY= cnf("GATE_KEY")
+GATE_SECRET_KEY= cnf("GATE_KEY")
 MEXC_API_KEY=cnf("MEXC_API_KEY")
 MEXC_API_SECRET=cnf("MEXC_API_SECRET")
 
@@ -48,8 +49,6 @@ INSTALLED_APPS = [
     'trader.apps.TraderConfig',
     'exchange.apps.ExchangeConfig',
     'trade.apps.TradeConfig',
-    'gate.apps.GateConfig',
-    'mexc.apps.MexcConfig',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +132,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+BASE_URL_MEXC="https://api.mexc.com"
+BASE_URL_GATE="https://api.gateio.ws"
+
+API_ENDPOINT_GATE="/api/v4/spot/tickers"
+API_ENDPOINT_MEXC="/api/v3/ticker/24hr"

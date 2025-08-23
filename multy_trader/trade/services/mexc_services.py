@@ -1,11 +1,5 @@
 from django.conf import settings
-import django
 import ccxt
-
-import os
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
-django.setup()
 
 
 def mexc_buy_futures_contract(entry, order):

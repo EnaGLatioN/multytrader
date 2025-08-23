@@ -2,7 +2,6 @@ import ccxt
 from django.conf import settings
 import os
 import django
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
 django.setup()
 
@@ -52,13 +51,6 @@ def buy_btc_ccxt(btc_amount: float):
 
 #ПРОВЕРКА ДОСТУПНЫХ ДЛЯ ТОРГОВЛИ ПАР
 
-import ccxt
-from django.conf import settings
-import os
-import django
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
-django.setup()
 
 
 def check_symbols():
