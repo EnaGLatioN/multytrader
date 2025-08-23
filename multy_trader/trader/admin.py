@@ -40,17 +40,11 @@ class CustomProxy(ModelAdmin):
 
 
 class CustomExchangeAccount(ModelAdmin):
-    fields = ('login', 'password', 'api_key', 'secret_key','exchange', 'proxies', 'is_active')
+    fields = ('login', 'password', 'api_key', 'secret_key','exchange', 'is_active')
     list_display = ('login', 'is_active')
     search_fields = ('login',)
     search_help_text = 'Введите логин'
     list_filter = ('is_active', 'exchange')
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == 'proxies':
-            kwargs["queryset"] = Proxy.objects.filter(is_active=True)
-            kwargs["widget"] = FilteredSelectMultiple('Прокси', is_stacked=False)
-
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_queryset(self,request):
         qs = super().get_queryset(request)

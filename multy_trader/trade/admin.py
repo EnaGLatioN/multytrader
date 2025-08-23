@@ -1,28 +1,48 @@
 from django.contrib.admin import ModelAdmin, TabularInline
-from .models import Entry, Order, TradeType
+from .models import Entry, Order
 from trader.admin import my_admin_site
-from trader.models import ExchangeAccount
-from exchange.models import WalletPair
+from trader.models import ExchangeAccount, Proxy
+from exchange.models import WalletPair, Exchange
 from .services.services import send_order_to_exchange_api
-
+from .forms import EntryForm
 
 class OrderInline(TabularInline):
     model = Order
-    extra = 0
-    fields = ('entry_course', 'trade_type', 'exchange_account')
+    extra = 1
+    max_num = 1
+    fields = ('exchange_account', 'trade_type', 'proxy')
     
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'exchange_account' and not request.user.is_superuser:
             kwargs["queryset"] = ExchangeAccount.objects.filter(user_exchange_account = request.user)
+        if db_field.name == 'proxy':
+            kwargs["queryset"] = Proxy.objects.filter(is_active = True)
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class EntryAdmin(ModelAdmin):
-    fields = ('exit_course', 'shoulder','count','wallet_pair','is_active')
-    list_display = ('profit', 'shoulder','count', 'exit_course', 'is_active')
-    list_filter = ('is_active',)
-    inlines = [OrderInline]
+    form = EntryForm
+    fields = ('profit', 'exit_course', 'entry_course', 'shoulder', 'exchange_one', 'exchange_two','wallet_pair')
+    list_display = ('profit', 'shoulder','exit_course')
+    list_filter = ('status',)
+    inlines = [OrderInline, OrderInline]
+    
+    class Media:
+        js = (
+            'admin/js/jquery.init.js',  # Стандартный jQuery из Django Admin
+            'js/admin_dynamic_fields.js',  # Ваш скрипт
+        )
+
+#    def get_form(self, request, obj=None, **kwargs):
+#        form = super().get_form(request, obj, **kwargs)
+#        if obj:
+#            try:
+#                exchanges = Exchange.objects.all()
+#                form.base_fields['exchange_one'].initial = exchanges
+#            except Exchange.DoesNotExist:
+#                pass
+#        return form
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'wallet_pair': 
@@ -47,7 +67,7 @@ class EntryAdmin(ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
 
-        if not change:
-            send_order_to_exchange_api(form.instance)
+        #if not change:
+        #    send_order_to_exchange_api(form.instance)
 
 my_admin_site.register(Entry, EntryAdmin)

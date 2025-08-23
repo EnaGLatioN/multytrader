@@ -59,6 +59,20 @@ class Exchange(Model):
         max_length=255,
         help_text="Название биржи",
     )
+    max_limit = PositiveIntegerField(
+        help_text="Максимальное кол-во",
+        verbose_name="Максимальное кол-во"
+    )
+    min_limit = PositiveIntegerField(
+        help_text="Минимальное кол-во",
+        verbose_name="Минимальное кол-во"
+    )
+    base_url = CharField(
+        max_length=255,
+    )
+    api_endpoint = CharField(
+        max_length=255,
+    )
     wallet_pairs = ManyToManyField(
         WalletPair,
         related_name="exchange_wallet_pair",

@@ -1,6 +1,5 @@
 from .gate_services import gate_buy_futures_contract
 from .mexc_services import mexc_buy_futures_contract
-from trade.models import TradeType
 
 
 exchanges = {

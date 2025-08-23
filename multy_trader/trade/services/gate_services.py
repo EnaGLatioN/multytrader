@@ -1,7 +1,6 @@
 import decouple
 from gate_api import ApiClient, Configuration, FuturesApi
 import time
-from trade.models import TradeType
 from multy_trader.settings import GATE_HOST
 
 
@@ -11,7 +10,7 @@ def gate_buy_futures_contract(entry,order):
     """
 
     contract=entry.wallet_pair.slug # Например, BTC_USDT для бессрочного контракта
-    amount=entry.count if order.trade_type == TradeType.LONG else -entry.count # Количество BTC
+    amount=''#entry.count if order.trade_type == TradeType.LONG else -entry.count # Количество BTC
     price=order.entry_course  # None для рыночного ордера
     take_profit=entry.exit_course # Курс выхода
     order_type="market"  # "market" или "limit"

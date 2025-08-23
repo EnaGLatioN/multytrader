@@ -5,7 +5,7 @@ from trader.admin import my_admin_site
 
 
 class ExchangeAdmin(ModelAdmin):
-    fields = ('name', 'wallet_pairs')
+    fields = ('name', 'base_url', 'api_endpoint','max_limit', 'min_limit','wallet_pairs') # api_endpoint base_url - выпилить временно добавлены для тестов
     search_fields = ('name',)
     search_help_text = 'Введите название биржи для поиска'
 

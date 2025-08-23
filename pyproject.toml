@@ -14,7 +14,8 @@ dependencies = [
     "gate-api (>=6.100.2,<7.0.0)",
     "websocket-client (>=1.8.0,<2.0.0)",
     "protobuf (>=6.31.1,<7.0.0)",
-    "django-encrypted-model-fields (>=0.6.5, <0.7.0)"
+    "django-encrypted-model-fields (>=0.6.5, <0.7.0)",
+    "ccxt (>=4.5.1,<5.0.0)"
 ]
 
 

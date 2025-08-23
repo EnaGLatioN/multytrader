@@ -113,11 +113,6 @@ class ExchangeAccount(Model):
         help_text="Дата создания",
         verbose_name="Дата создания",
     )
-    proxies = ManyToManyField(
-        Proxy,
-        related_name="exchange_account_proxy",
-        verbose_name="Прокси",
-    )
     exchange = ForeignKey(
         Exchange,
         on_delete=CASCADE,
