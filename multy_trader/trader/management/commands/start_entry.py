@@ -19,7 +19,29 @@ class Command(BaseCommand):
             entry = Entry.objects.get(id=entry_id)
         except Entry.DoesNotExist:
             raise Entry.DoesNotExist
-
-        PriceChecker(
-
-        )
+        orders = entry.order_entry.all()
+        long_order = None
+        short_order = None
+        flag = True
+        for order in orders:
+            if order.trade_type == "LONG":
+                long_order = order
+                price_checker_long = PriceChecker(
+                                        wallet_pair=entry.wallet_pair,
+                                        base_url=order.exchange_account.exchange_account_exchange.base_url,
+                                        api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
+                                        exchange_type=order.exchange_account.exchange_account_exchange.name.lower()
+                                    )
+            short_order = order
+            price_checker_short = PriceChecker(
+                                    wallet_pair=entry.wallet_pair,
+                                    base_url=order.exchange_account.exchange_account_exchange.base_url,
+                                    api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
+                                    exchange_type = order.exchange_account.exchange_account_exchange.name.lower()
+                                )
+        while flag:
+            bid = price_checker_long.get_bid_ask_prices(long_order.trade_type)
+            ask = price_checker_short.get_bid_ask_prices(short_order.trade_type)
+            getter_course = ((bid.get("best_bid")/ask.get("best_ask")) - 1) * 100
+            if getter_course < entry.entry_course:
+                flag = False
