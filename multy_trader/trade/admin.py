@@ -24,7 +24,7 @@ class OrderInline(TabularInline):
 class EntryAdmin(ModelAdmin):
     form = EntryForm
     fields = ('profit', 'exit_course', 'entry_course', 'shoulder', 'exchange_one', 'exchange_two','wallet_pair')
-    list_display = ('profit', 'shoulder','exit_course')
+    list_display = ('profit', 'shoulder','exit_course', 'entry_course','wallet_pair', 'status')
     list_filter = ('status',)
     inlines = [OrderInline, OrderInline]
     

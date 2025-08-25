@@ -8,12 +8,12 @@ class EntryForm(ModelForm):
     exchange_one = ModelChoiceField(
         queryset=Exchange.objects.all(),
         required=False,
-        label="Биржа"
+        label="Выберите первую биржу"
     )
     exchange_two = ModelChoiceField(
         queryset=Exchange.objects.all(),
         required=False,
-        label="Биржа"
+        label="Выберите вторую биржу"
     )
 
     class Meta:
