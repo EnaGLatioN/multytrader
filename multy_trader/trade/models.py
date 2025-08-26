@@ -124,8 +124,11 @@ class Process(Model):
         primary_key=True,
         verbose_name="ID",
     )
-
     pid = PositiveIntegerField(
         help_text="Пид процесса",
         verbose_name="Пид процесса"
+    )
+    entry_id = CharField(
+        help_text="ID ENTRY",
+        verbose_name="ID ENTRY",
     )

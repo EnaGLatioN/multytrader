@@ -1,3 +1,5 @@
+import os
+import signal
 from django.contrib.admin import ModelAdmin, TabularInline
 from .models import Entry, Order, Process
 from trader.admin import my_admin_site
@@ -69,7 +71,7 @@ class EntryAdmin(ModelAdmin):
         if not change:
             with open("process.log", "a") as log_file:
                 active_process = subprocess.Popen(
-                    ["poetry", "run", "python", "bot_click.py",
+                    ["poetry", "run", "python", "start_entry.py",
                      "--entry_id", str(form.instance.id),
                      ],
                     stdout=log_file,
@@ -79,7 +81,16 @@ class EntryAdmin(ModelAdmin):
                 Process.objects.create(
                     pid=active_process.pid
                 )
-        if not change:
-           send_order_to_exchange_api(form.instance)
+
+    def delete_model(self, request, obj):
+        entry_id = obj.id
+        try:
+            pid = Process.objects.get(entry_id=str(entry_id)).pid
+        except Exception as e:
+            print(f"delete_model -- trade -- {e}")
+            pid = None
+        if pid is not None:
+            os.kill(pid, signal.SIGTERM)
+        super().delete_model(request, obj)
 
 my_admin_site.register(Entry, EntryAdmin)
