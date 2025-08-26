@@ -1,7 +1,6 @@
 import time
 import logging
 from django.core.management.base import BaseCommand
-from django.utils.http import escape_leading_slashes
 
 from multy_trader.utils import PriceChecker
 from multy_trader.trade.models import Entry

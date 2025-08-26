@@ -114,3 +114,18 @@ class Order(Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+
+class Process(Model):
+    id = UUIDField(
+        default=uuid4,
+        help_text="Уникальный идентификатор ",
+        primary_key=True,
+        verbose_name="ID",
+    )
+
+    pid = PositiveIntegerField(
+        help_text="Пид процесса",
+        verbose_name="Пид процесса"
+    )

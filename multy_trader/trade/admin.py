@@ -1,9 +1,9 @@
 from django.contrib.admin import ModelAdmin, TabularInline
-from .models import Entry, Order
+from .models import Entry, Order, Process
 from trader.admin import my_admin_site
 from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair, Exchange
-from .services.services import send_order_to_exchange_api
+import subprocess
 from .forms import EntryForm
 
 class OrderInline(TabularInline):
@@ -66,8 +66,20 @@ class EntryAdmin(ModelAdmin):
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
-
-        #if not change:
-        #    send_order_to_exchange_api(form.instance)
+        if not change:
+            with open("process.log", "a") as log_file:
+                active_process = subprocess.Popen(
+                    ["poetry", "run", "python", "bot_click.py",
+                     "--entry_id", str(form.instance.id),
+                     ],
+                    stdout=log_file,
+                    stderr=log_file,
+                    text=True
+                )
+                Process.objects.create(
+                    pid=active_process.pid
+                )
+        if not change:
+           send_order_to_exchange_api(form.instance)
 
 my_admin_site.register(Entry, EntryAdmin)
