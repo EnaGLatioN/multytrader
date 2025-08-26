@@ -54,3 +54,56 @@ bash
 Если проблема сохраняется, попробуйте удалить все *_pb2.py файлы и сгенерировать их заново одной командой.
 
 Не забыть переподключаться к мексу каждый 24 часа
+
+
+УСТАНОВКА ЛИБЫ ПО МЕКСУ
+1. Клонируй репозиторий и используй готовый SDK
+bash
+
+# Клонируй репозиторий
+git clone https://github.com/mxcdevelop/mexc-api-sdk.git
+
+# Перейди в папку с Python SDK
+cd mexc-api-sdk/dist/python
+
+# Распакуй архив (если есть архив)
+# Если там файл .zip, то:
+unzip mexc-python-sdk.zip
+
+# Или если там .tar.gz:
+tar -xzf mexc-python-sdk.tar.gz
+
+# Перейди в распакованную директорию
+cd mexc-python-sdk
+
+# Установи SDK
+pip install .
+
+2. Или просто скопируй файлы в свой проект
+bash
+
+# Скопируй нужные файлы прямо в твой проект
+cp -r mexc-api-sdk/dist/python/mexc-python-sdk/* /home/ubwork/git/multytrader/multy_trader/
+
+3. Альтернативно - используй прямо из папки
+
+Добавь путь к SDK в твой скрипт:
+python
+
+import sys
+import os
+
+# Добавь путь к распакованному SDK
+sys.path.insert(0, '/home/ubwork/mexc-api-sdk/dist/python/mexc-python-sdk')
+
+from mexc_sdk import Spot
+
+# Остальной код...
+
+4. Или просто скачай готовый wheel файл
+
+Посмотри в папке dist/python - там должен быть файл .whl:
+bash
+
+# Установи напрямую из wheel файла
+pip install /path/to/mexc_sdk-0.0.1-py3-none-any.whl
