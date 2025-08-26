@@ -1,7 +1,12 @@
+import time
 import logging
 from django.core.management.base import BaseCommand
+from django.utils.http import escape_leading_slashes
+
 from multy_trader.utils import PriceChecker
 from multy_trader.trade.models import Entry
+from multy_trader.trade.services import gate_services, mexc_services
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -40,8 +45,16 @@ class Command(BaseCommand):
                                     exchange_type = order.exchange_account.exchange_account_exchange.name.lower()
                                 )
         while flag:
+            time.sleep(2)
             bid = price_checker_long.get_bid_ask_prices(long_order.trade_type)
             ask = price_checker_short.get_bid_ask_prices(short_order.trade_type)
             getter_course = ((bid.get("best_bid")/ask.get("best_ask")) - 1) * 100
-            if getter_course < entry.entry_course:
-                flag = False
+            if getter_course <= entry.entry_course:
+                continue
+
+            mexc_services.mexc_buy_futures_contract(entry, long_order if long_order.exchange_account.exchange_account_exchange.name.lower() == 'mexc' else short_order)
+            gate_services.gate_buy_futures_contract(entry, short_order if short_order.exchange_account.exchange_account_exchange.name.lower() == 'gate' else long_order)
+            entry.status = "ACTIVE"
+            entry.save()
+            flag = False
+

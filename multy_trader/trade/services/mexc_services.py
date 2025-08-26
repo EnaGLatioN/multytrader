@@ -11,11 +11,12 @@ def mexc_buy_futures_contract(entry, order):
 
     exchange.load_markets()
 
-    # Создание рыночного ордера на покупку по количеству
+    # Создание рыночного ордера
     order = exchange.create_order(
         entry.wallet_pair.slug,
         'market',
         "buy" if order.trade_type == "LONG" else "sell",
-        entry.count
+        entry.profit
     )
+
     return order

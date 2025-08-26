@@ -4,11 +4,9 @@ from django.db.models import (
     CharField,
     PositiveIntegerField,
     UUIDField,
-    BooleanField,
     DateTimeField,
     TextChoices,
     ForeignKey,
-    ManyToManyField,
     CASCADE
 )
 from django.core.validators import MinValueValidator

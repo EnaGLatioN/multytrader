@@ -1,4 +1,3 @@
-import decouple
 from gate_api import ApiClient, Configuration, FuturesApi
 import time
 from multy_trader.settings import GATE_HOST
@@ -22,11 +21,11 @@ def gate_buy_futures_contract(entry,order):
             secret=order.exchange_account.secret_key
         )
         futures_api = FuturesApi(ApiClient(config))
-
+        settle = 'usdt'
         futures_api.update_position_leverage(
             contract=contract,
             leverage=str(entry.shoulder),
-            settle='usdt'  # Для USDT-маркированных контрактов
+            settle=settle  # Для USDT-маркированных контрактов
         )
 
         order = FuturesApi.FuturesOrder(
@@ -36,7 +35,7 @@ def gate_buy_futures_contract(entry,order):
             time_in_force="gtc",  # Good Till Cancelled
             close=False,
             reduce_only=False,
-            settle="USDT",
+            settle=settle.upper(),
             text=f"api-buy-{int(time.time())}"
         )
         if take_profit:
@@ -47,11 +46,11 @@ def gate_buy_futures_contract(entry,order):
                 time_in_force="gtc",
                 close=True,  # Закрытие позиции
                 reduce_only=True,  # Только уменьшение позиции
-                settle="USDT",
+                settle=settle.upper(),
                 text=f"tp-{int(time.time())}"
             )
-            futures_api.create_futures_order(close_order)
-        response = futures_api.create_futures_order(order)
+            futures_api.create_futures_order(settle.upper(), close_order)
+        response = futures_api.create_futures_order(settle.upper(), order)
         print("Ордер размещен:", response)
         return response
 
