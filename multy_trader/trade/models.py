@@ -129,6 +129,7 @@ class Process(Model):
         verbose_name="Пид процесса"
     )
     entry_id = CharField(
+        blank=True,
         help_text="ID ENTRY",
         verbose_name="ID ENTRY",
     )
