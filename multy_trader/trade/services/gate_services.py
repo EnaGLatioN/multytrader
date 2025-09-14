@@ -1,5 +1,5 @@
 from gate_api import ApiClient, Configuration, FuturesApi
-from multy_trader.trade.models import TradeType
+from trade.models import TradeType
 import time
 from multy_trader.settings import GATE_HOST
 

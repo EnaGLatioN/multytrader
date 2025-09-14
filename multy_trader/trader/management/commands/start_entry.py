@@ -2,9 +2,9 @@ import time
 import logging
 from django.core.management.base import BaseCommand
 
-from multy_trader.utils import PriceChecker
-from multy_trader.trade.models import Entry
-from multy_trader.trade.services import gate_services, mexc_services
+from utils import PriceChecker
+from trade.models import Entry
+from trade.services import gate_services, mexc_services
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -57,6 +57,8 @@ class Command(BaseCommand):
         short_order = None
         flag = True
         for order in orders:
+            print('-----order-----')
+            print(order)
             if order.trade_type == "LONG":
                 long_order = order
                 price_checker_long = PriceChecker(
@@ -65,14 +67,16 @@ class Command(BaseCommand):
                                         api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
                                         exchange_type=order.exchange_account.exchange_account_exchange.name.lower()
                                     )
+                print(price_checker_long)
             else:
                 short_order = order
                 price_checker_short = PriceChecker(
-                                        wallet_pair=entry.wallet_pair,
-                                        base_url=order.exchange_account.exchange_account_exchange.base_url,
-                                        api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
-                                        exchange_type = order.exchange_account.exchange_account_exchange.name.lower()
-                                    )
+                                    wallet_pair=entry.wallet_pair,
+                                    base_url=order.exchange_account.exchange_account_exchange.base_url,
+                                    api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
+                                    exchange_type = order.exchange_account.exchange_account_exchange.name.lower()
+                                )
+                print(pricprice_checker_shorte_checker_long)
 
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "ACTIVE")
         long_order.trade_type = "SHORT"
