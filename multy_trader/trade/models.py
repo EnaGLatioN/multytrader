@@ -19,9 +19,11 @@ class EntryStatusType(TextChoices):
     ACTIVE = "ACTIVE", "Активно"
     COMPLETED = "COMPLETED", "Завершено"
 
+
 class TradeType(TextChoices):
     LONG = "LONG", "Лонг"
     SHORT = "SHORT", "Шорт"
+
 
 class Entry(Model):
     id = UUIDField(
@@ -34,8 +36,8 @@ class Entry(Model):
         validators=[MinValueValidator(1)], 
         blank = True,
         null = True,
-        help_text="Сумма затраченная на покупку",
-        verbose_name="Маржа"
+        help_text="Колличество монет",
+        verbose_name="Колличество монет"
     )
     shoulder = PositiveIntegerField(
         help_text="Плечо",
