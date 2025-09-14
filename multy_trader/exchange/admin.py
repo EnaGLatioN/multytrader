@@ -5,18 +5,12 @@ from trader.admin import my_admin_site
 
 
 class ExchangeAdmin(ModelAdmin):
-    fields = ('name', 'base_url', 'api_endpoint','max_limit', 'min_limit','wallet_pairs') # api_endpoint base_url - выпилить временно добавлены для тестов
+    fields = ('name', 'base_url', 'api_endpoint','max_limit', 'min_limit')
     search_fields = ('name',)
     search_help_text = 'Введите название биржи для поиска'
 
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == 'wallet_pairs':
-            kwargs["widget"] = FilteredSelectMultiple('Валютные пары', is_stacked=False)
-
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
-
 class WalletPairAdmin(ModelAdmin):
-    fields = ('slug', 'is_active')
+    fields = ('slug', 'is_active', '')
     search_fields = ('slug',)
     list_display = ('slug','is_active',)
     list_filter = ('is_active',)
@@ -24,4 +18,3 @@ class WalletPairAdmin(ModelAdmin):
 
 my_admin_site.register(Exchange, ExchangeAdmin)
 my_admin_site.register(WalletPair, WalletPairAdmin)
-

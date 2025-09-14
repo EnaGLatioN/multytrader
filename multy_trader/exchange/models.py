@@ -70,11 +70,6 @@ class Exchange(Model):
     api_endpoint = CharField(
         max_length=255,
     )
-    wallet_pairs = ManyToManyField(
-        WalletPair,
-        related_name="exchange_wallet_pair",
-        verbose_name="Валютные пары",
-    )
     created_at = DateTimeField(
         auto_now_add=True,
         help_text="Дата создания",
@@ -116,4 +111,4 @@ class PairExchangeMapping(Model):
         ordering = ['wallet_pair', 'exchange']
 
     def __str__(self):
-        return f"{self.wallet_pair.slug} → {self.local_name} ({self.exchange.name})"
+        return f"{self.local_name} ({self.exchange.name})"
