@@ -7,7 +7,8 @@ from django.db.models import (
     ManyToManyField,
     PositiveIntegerField,
     BooleanField,
-    TextChoices
+    ForeignKey,
+    CASCADE
 )
 
 
@@ -49,13 +50,6 @@ class WalletPairMexc(Model):
     )
 
 
-class EntryStatusType(TextChoices):
-    MEXC = "MEXC", "Биржа MEXC"
-    GATE = "GATE", "Биржа GATE"
-    WAIT = "WAIT", "WAIT"
-
-
-
 class WalletPair(Model):
     id = UUIDField(
         default=uuid4,
@@ -63,20 +57,19 @@ class WalletPair(Model):
         primary_key=True,
         verbose_name="ID",
     )
-    slug = CharField(
-        "Слаг пары",
-        max_length=255,
-        help_text="Слаг пары",
+    walet_gate = ForeignKey(
+        "WalletPairGate",
+        help_text="Валютная пара гейта",
+        on_delete=CASCADE,
+        related_name="walet_gates",
+        verbose_name="Валютная пара гейта",
     )
-    price = PositiveIntegerField(
-        help_text="Стоимость",
-        verbose_name="Стоимость"
-    )
-    status = CharField(
-        choices=EntryStatusType.choices,
-        default=EntryStatusType.WAIT.value,
-        help_text="Статус",
-        verbose_name="Статус",
+    walet_mexc = ForeignKey(
+        "WalletPairMexc",
+        help_text="Валютная пара мекса",
+        on_delete=CASCADE,
+        related_name="walet_mexcs",
+        verbose_name="Валютная пара мекса",
     )
     is_active = BooleanField(
         default=True,
