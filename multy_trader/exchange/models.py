@@ -6,7 +6,8 @@ from django.db.models import (
     UUIDField,
     ManyToManyField,
     PositiveIntegerField,
-    BooleanField
+    BooleanField,
+    TextChoices
 )
 
 
@@ -48,6 +49,13 @@ class WalletPairMexc(Model):
     )
 
 
+class EntryStatusType(TextChoices):
+    MEXC = "MEXC", "Биржа MEXC"
+    GATE = "GATE", "Биржа GATE"
+    WAIT = "WAIT", "WAIT"
+
+
+
 class WalletPair(Model):
     id = UUIDField(
         default=uuid4,
@@ -64,6 +72,12 @@ class WalletPair(Model):
         help_text="Стоимость",
         verbose_name="Стоимость"
     )
+    status = CharField(
+        choices=EntryStatusType.choices,
+        default=EntryStatusType.WAIT.value,
+        help_text="Статус",
+        verbose_name="Статус",
+    )
     is_active = BooleanField(
         default=True,
         help_text="Активна ли валютная пара",
@@ -74,6 +88,7 @@ class WalletPair(Model):
         help_text="Дата создания",
         verbose_name="Дата создания",
     )
+
     class Meta:
         db_table = "wallet_pair"
         verbose_name = "Валютная пара"
