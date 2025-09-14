@@ -29,9 +29,9 @@ class Command(BaseCommand):
                     continue
 
                 mexc_services.mexc_buy_futures_contract(entry,
-                                                        long_order if long_order.exchange_account.name.lower() == 'mexc' else short_order)
+                                                        long_order if long_order.exchange_account.exchange.name.lower() == 'mexc' else short_order)
                 gate_services.gate_buy_futures_contract(entry,
-                                                        short_order if short_order.exchange_account.name.lower() == 'gate' else long_order)
+                                                        short_order if short_order.exchange_account.exchange.name.lower() == 'gate' else long_order)
                 entry.status = status
                 entry.save()
                 flag = False
@@ -40,9 +40,9 @@ class Command(BaseCommand):
                     continue
 
                 mexc_services.mexc_buy_futures_contract(entry,
-                                                        long_order if long_order.exchange_account.name.lower() == 'mexc' else short_order)
+                                                        long_order if long_order.exchange_account.exchange.name.lower() == 'mexc' else short_order)
                 gate_services.gate_buy_futures_contract(entry,
-                                                        short_order if short_order.exchange_account.name.lower() == 'gate' else long_order)
+                                                        short_order if short_order.exchange_account.exchange.name.lower() == 'gate' else long_order)
                 entry.status = status
                 entry.save()
                 flag = False
@@ -63,20 +63,20 @@ class Command(BaseCommand):
                 long_order = order
                 price_checker_long = PriceChecker(
                                         wallet_pair=entry.wallet_pair,
-                                        base_url=order.exchange_account.base_url,
-                                        api_endpoint=order.exchange_account.api_endpoint,
-                                        exchange_type=order.exchange_account.name.lower()
+                                        base_url=order.exchange_account.exchange.base_url,
+                                        api_endpoint=order.exchange_account.exchange.api_endpoint,
+                                        exchange_type=order.exchange_account.exchange.name.lower()
                                     )
                 print(price_checker_long)
             else:
                 short_order = order
                 price_checker_short = PriceChecker(
                                     wallet_pair=entry.wallet_pair,
-                                    base_url=order.exchange_account.base_url,
-                                    api_endpoint=order.exchange_account.api_endpoint,
-                                    exchange_type = order.exchange_account.name.lower()
+                                    base_url=order.exchange_account.exchange.base_url,
+                                    api_endpoint=order.exchange_account.exchange.api_endpoint,
+                                    exchange_type = order.exchange_account.exchange.name.lower()
                                 )
-                print(pricprice_checker_shorte_checker_long)
+                print(price_checker_short)
 
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "ACTIVE")
         long_order.trade_type = "SHORT"
