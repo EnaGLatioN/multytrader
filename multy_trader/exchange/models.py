@@ -12,44 +12,6 @@ from django.db.models import (
 )
 
 
-class WalletPairGate(Model):
-    id = UUIDField(
-        default=uuid4,
-        help_text="Уникальный идентификатор ",
-        primary_key=True,
-        verbose_name="ID",
-    )
-    slug = CharField(
-        "Слаг пары",
-        max_length=255,
-        help_text="Слаг пары",
-    )
-    created_at = DateTimeField(
-        auto_now_add=True,
-        help_text="Дата создания",
-        verbose_name="Дата создания",
-    )
-
-
-class WalletPairMexc(Model):
-    id = UUIDField(
-        default=uuid4,
-        help_text="Уникальный идентификатор ",
-        primary_key=True,
-        verbose_name="ID",
-    )
-    slug = CharField(
-        "Слаг пары",
-        max_length=255,
-        help_text="Слаг пары",
-    )
-    created_at = DateTimeField(
-        auto_now_add=True,
-        help_text="Дата создания",
-        verbose_name="Дата создания",
-    )
-
-
 class WalletPair(Model):
     id = UUIDField(
         default=uuid4,
@@ -57,19 +19,10 @@ class WalletPair(Model):
         primary_key=True,
         verbose_name="ID",
     )
-    walet_gate = ForeignKey(
-        "WalletPairGate",
-        help_text="Валютная пара гейта",
-        on_delete=CASCADE,
-        related_name="walet_gates",
-        verbose_name="Валютная пара гейта",
-    )
-    walet_mexc = ForeignKey(
-        "WalletPairMexc",
-        help_text="Валютная пара мекса",
-        on_delete=CASCADE,
-        related_name="walet_mexcs",
-        verbose_name="Валютная пара мекса",
+    slug = CharField(
+        "Слаг пары",
+        max_length=255,
+        help_text="Слаг пары",
     )
     is_active = BooleanField(
         default=True,
@@ -90,7 +43,6 @@ class WalletPair(Model):
 
     def __str__(self):
         return self.slug
-
 
 class Exchange(Model):
     id = UUIDField(
@@ -136,3 +88,32 @@ class Exchange(Model):
 
     def __str__(self):
         return self.name
+
+class PairExchangeMapping(Model):
+    wallet_pair = ForeignKey(
+        WalletPair,
+        blank=True, 
+        null=True,
+        on_delete=CASCADE, 
+        related_name="exchange_mappings", 
+        verbose_name="Единая пара"
+    )
+    exchange = ForeignKey(
+        Exchange, 
+        on_delete=CASCADE, 
+        related_name="pair_mappings", 
+        verbose_name="Биржа"
+    )
+    local_name = CharField(
+        max_length=50, 
+        verbose_name="Локальное имя на бирже"
+    )
+
+    class Meta:
+        verbose_name = "Маппинг пары на биржу"
+        verbose_name_plural = "Маппинги пар на биржи"
+        unique_together = ['wallet_pair', 'exchange']
+        ordering = ['wallet_pair', 'exchange']
+
+    def __str__(self):
+        return f"{self.wallet_pair.slug} → {self.local_name} ({self.exchange.name})"

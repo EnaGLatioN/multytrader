@@ -16,9 +16,9 @@ class ExchangeAdmin(ModelAdmin):
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 class WalletPairAdmin(ModelAdmin):
-    fields = ('slug', 'price', 'is_active')
+    fields = ('slug', 'is_active')
     search_fields = ('slug',)
-    list_display = ('slug', 'price','is_active',)
+    list_display = ('slug','is_active',)
     list_filter = ('is_active',)
     search_help_text = 'Введите валютную пару для поиска'
 

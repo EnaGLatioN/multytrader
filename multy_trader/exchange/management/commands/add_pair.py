@@ -3,7 +3,7 @@ import requests
 
 import gate_api
 from django.core.management.base import BaseCommand
-from exchange.models import WalletPairGate, WalletPairMexc, WalletPair
+from exchange.models import PairExchangeMapping, WalletPair, Exchange
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -22,9 +22,11 @@ class Command(BaseCommand):
         api_client = gate_api.ApiClient(configuration)
         api_instance = gate_api.SpotApi(api_client)
         response = api_instance.list_currency_pairs()
+        exchange = Exchange.objects.get(name='GATE')
         for resp in response:
-            WaletPairs.objects.get_or_create(
-                slug=resp.id,
+            PairExchangeMapping.objects.get_or_create(
+                local_name=resp.id,
+                exchange=exchange
             )
         logger.info(f"Succes added slugs")
 
@@ -33,11 +35,13 @@ class Command(BaseCommand):
         response = requests.get(url)
         data = response.json()
         response.raise_for_status()
+        exchange = Exchange.objects.get(name='MEXC')
         for symbol in data['symbols']:
             base = symbol['baseAsset']
             quote = symbol['quoteAsset']
             formatted_pair = f"{base}_{quote}"
-            WaletPairsMexc.objects.get_or_create(
-                slug=formatted_pair,
+            PairExchangeMapping.objects.get_or_create(
+                local_name=formatted_pair,
+                exchange=exchange
             )
         logger.info(f"Succes added slugs")
