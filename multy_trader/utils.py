@@ -29,9 +29,11 @@ class PriceChecker:
         if self.exchange_type is None:
             return None
         elif self.exchange_type == 'mexc':
-            params = {'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT"}
+            local_name = self.get_wallet_pair_mexc(self.wallet_pair)
+            params = {'symbol': local_name if local_name else "BTCUSDT"}
         elif self.exchange_type == 'gate':
-            params = {'currency_pair': self.wallet_pair if self.wallet_pair else "BTC_USDT"}
+            local_name = self.get_wallet_pair_gate(self.wallet_pair)
+            params = {'currency_pair': local_name if local_name else "BTC_USDT"}
         else:
             params = {}
 
@@ -157,6 +159,19 @@ class PriceChecker:
         else:
             return None
 
+    def get_wallet_pair_gate(self, wallet_pair):
+        all_wallet = wallet_pair.exchange_mappings
+        exchange = Exchange.objects.get(name='GATE')
+        for i in all_wallet:
+            if i.exchange == exchange:
+                return i.local_name
+
+    def get_wallet_pair_mexc(self, wallet_pair):
+        all_wallet = wallet_pair.exchange_mappings
+        exchange = Exchange.objects.get(name='MEXC')
+        for i in all_wallet:
+            if i.exchange == exchange:
+                return i.local_name
 
 # if __name__ == "__main__":
 #     print("MEXC Market Data:")

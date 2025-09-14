@@ -10,7 +10,7 @@ class ExchangeAdmin(ModelAdmin):
     search_help_text = 'Введите название биржи для поиска'
 
 class WalletPairAdmin(ModelAdmin):
-    fields = ('slug', 'is_active', '')
+    fields = ('slug', 'is_active',)
     search_fields = ('slug',)
     list_display = ('slug','is_active',)
     list_filter = ('is_active',)

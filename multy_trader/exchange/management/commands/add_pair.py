@@ -59,7 +59,6 @@ class Command(BaseCommand):
     
     def get_double_wallet_pair(self,formatted_pair, exchange_gate):
         try:
-            print(formatted_pair)
             return PairExchangeMapping.objects.get(local_name=formatted_pair, exchange = exchange_gate)
         except PairExchangeMapping.DoesNotExist:
             return self.normalize_wallet_pair(formatted_pair, exchange_gate) 

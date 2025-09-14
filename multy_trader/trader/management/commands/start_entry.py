@@ -57,8 +57,6 @@ class Command(BaseCommand):
         short_order = None
         flag = True
         for order in orders:
-            print('-----order-----')
-            print(order)
             if order.trade_type == "LONG":
                 long_order = order
                 price_checker_long = PriceChecker(
@@ -67,7 +65,6 @@ class Command(BaseCommand):
                                         api_endpoint=order.exchange_account.exchange.api_endpoint,
                                         exchange_type=order.exchange_account.exchange.name.lower()
                                     )
-                print(price_checker_long)
             else:
                 short_order = order
                 price_checker_short = PriceChecker(
@@ -76,7 +73,6 @@ class Command(BaseCommand):
                                     api_endpoint=order.exchange_account.exchange.api_endpoint,
                                     exchange_type = order.exchange_account.exchange.name.lower()
                                 )
-                print(price_checker_short)
 
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "ACTIVE")
         long_order.trade_type = "SHORT"
