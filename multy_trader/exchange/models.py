@@ -8,7 +8,44 @@ from django.db.models import (
     PositiveIntegerField,
     BooleanField
 )
-from django.db import models
+
+
+class WalletPairGate(Model):
+    id = UUIDField(
+        default=uuid4,
+        help_text="Уникальный идентификатор ",
+        primary_key=True,
+        verbose_name="ID",
+    )
+    slug = CharField(
+        "Слаг пары",
+        max_length=255,
+        help_text="Слаг пары",
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        help_text="Дата создания",
+        verbose_name="Дата создания",
+    )
+
+
+class WalletPairMexc(Model):
+    id = UUIDField(
+        default=uuid4,
+        help_text="Уникальный идентификатор ",
+        primary_key=True,
+        verbose_name="ID",
+    )
+    slug = CharField(
+        "Слаг пары",
+        max_length=255,
+        help_text="Слаг пары",
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        help_text="Дата создания",
+        verbose_name="Дата создания",
+    )
 
 
 class WalletPair(Model):
