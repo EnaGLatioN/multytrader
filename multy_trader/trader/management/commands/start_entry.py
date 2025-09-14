@@ -65,13 +65,14 @@ class Command(BaseCommand):
                                         api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
                                         exchange_type=order.exchange_account.exchange_account_exchange.name.lower()
                                     )
-            short_order = order
-            price_checker_short = PriceChecker(
-                                    wallet_pair=entry.wallet_pair,
-                                    base_url=order.exchange_account.exchange_account_exchange.base_url,
-                                    api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
-                                    exchange_type = order.exchange_account.exchange_account_exchange.name.lower()
-                                )
+            else:
+                short_order = order
+                price_checker_short = PriceChecker(
+                                        wallet_pair=entry.wallet_pair,
+                                        base_url=order.exchange_account.exchange_account_exchange.base_url,
+                                        api_endpoint=order.exchange_account.exchange_account_exchange.api_endpoint,
+                                        exchange_type = order.exchange_account.exchange_account_exchange.name.lower()
+                                    )
 
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "ACTIVE")
         long_order.trade_type = "SHORT"
