@@ -76,7 +76,7 @@ class Entry(Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f'{self.profit}'
+        return f'{self.id}'
 
 
 class Order(Model):

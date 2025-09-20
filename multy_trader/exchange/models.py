@@ -111,4 +111,4 @@ class PairExchangeMapping(Model):
         ordering = ['wallet_pair', 'exchange']
 
     def __str__(self):
-        return f"{self.local_name} ({self.exchange.name})"
+        return f"{self.local_name}"
