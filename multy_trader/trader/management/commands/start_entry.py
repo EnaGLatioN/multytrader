@@ -28,6 +28,8 @@ class Command(BaseCommand):
             if status == "ACTIVE":
                 logger.info('-------getter_course------')
                 logger.info(getter_course)
+                logger.info('-------entry.entry_course------')
+                logger.info(entry.entry_course)
                 if getter_course <= entry.entry_course:
                     continue
 

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        #self.add_pairs_gate()
+        self.add_pairs_gate()
         self.add_pairs_mexc()
 
     def add_pairs_gate(self):
@@ -39,19 +39,17 @@ class Command(BaseCommand):
         exchange = Exchange.objects.get(name='MEXC')
         exchange_gate = Exchange.objects.get(name='GATE')
         for symbol in data['symbols']:
-            base = symbol['baseAsset']
-            quote = symbol['quoteAsset']
-            formatted_pair = f"{base}_{quote}"
+            mexc_local_name = symbol['symbol']
             
-            double = self.get_double_wallet_pair(formatted_pair, exchange_gate) 
+            double = self.get_double_wallet_pair(mexc_local_name, exchange_gate) 
             single_wallet_pair = None
 
             if double:
-                single_wallet_pair = WalletPair.objects.create(slug = formatted_pair)
+                single_wallet_pair = WalletPair.objects.create(slug = double.local_name)
                 self.update_double_wallet_pair(double, single_wallet_pair)
 
             PairExchangeMapping.objects.get_or_create(
-                local_name=formatted_pair,
+                local_name=mexc_local_name,
                 exchange=exchange,
                 wallet_pair=single_wallet_pair
             )

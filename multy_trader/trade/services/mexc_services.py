@@ -20,4 +20,3 @@ def mexc_buy_futures_contract(entry, order):
     )
 
     return order
-
