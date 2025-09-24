@@ -6,12 +6,12 @@ from multy_trader.settings import GATE_HOST
 
 def gate_buy_futures_contract(entry,order):
     """
-    Функция для покупки фьючерсного контракта на GATE
+    Функция для покупки/продажи фьючерсного контракта на GATE
     """
 
     contract=entry.wallet_pair.slug # Например, BTC_USDT для бессрочного контракта
     amount=entry.profit if order.trade_type == TradeType.LONG else -entry.profit # Количество BTC превращать из суммы в кол-во
-    price=order.entry_course  # None для рыночного ордера
+    price=entry.entry_course  # None для рыночного ордера
     take_profit=entry.exit_course # Курс выхода
     order_type="market"  # "market" или "limit"
 

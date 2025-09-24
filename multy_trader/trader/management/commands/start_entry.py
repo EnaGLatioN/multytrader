@@ -65,27 +65,31 @@ class Command(BaseCommand):
             logger.info('-------------order---------------')
             logger.info(order)
             exchange_type=order.exchange_account.exchange.name
+            print(exchange_type)
             if order.trade_type == "LONG":
                 long_order = order
                 price_checker_long = PriceChecker(
                                         wallet_pair=self.get_wallet_pair(entry.wallet_pair, exchange_type),
                                         base_url=order.exchange_account.exchange.base_url,
                                         api_endpoint=order.exchange_account.exchange.api_endpoint,
-                                        exchange_type=exchange_type.lower()
+                                        exchange_type=exchange_type.lower(),
+                                        trade_type = "LONG"
                                     )
                 logger.info('-------------price_checker_long---------------')
                 logger.info(price_checker_long.wallet_pair)
+                logger.info(price_checker_long.trade_type)
             else:
                 short_order = order
                 price_checker_short = PriceChecker(
                                     wallet_pair=self.get_wallet_pair(entry.wallet_pair, exchange_type),
                                     base_url=order.exchange_account.exchange.base_url,
                                     api_endpoint=order.exchange_account.exchange.api_endpoint,
-                                    exchange_type = exchange_type.lower()
+                                    exchange_type = exchange_type.lower(),
+                                    trade_type = "SHORT"
                                 )
                 logger.info('-------------price_checker_short---------------')
                 logger.info(price_checker_short.wallet_pair)
-
+                logger.info(price_checker_short.trade_type)
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "ACTIVE")
         
         long_order.trade_type = "SHORT"
@@ -93,14 +97,14 @@ class Command(BaseCommand):
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "COMPLETED")
         
     
-    def get_wallet_pair(self, wallet_pair, exchange):
+    def get_wallet_pair(self, wallet_pair, exchange) -> str:
         """Достает имя валютной пары привязанное к нужной бирже"""
 
         all_wallet = wallet_pair.exchange_mappings.all()
         exchange = Exchange.objects.get(name=exchange)
         for local_exchange_wallet in all_wallet:
             if local_exchange_wallet.exchange == exchange:
-                return local_exchange_wallet
+                return local_exchange_wallet.local_name
 
     
 

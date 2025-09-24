@@ -8,11 +8,13 @@ django.setup()
 
 
 class PriceChecker:
-    def __init__(self, base_url, api_endpoint, wallet_pair=None, exchange_type=None):
-        self.wallet_pair = wallet_pair
-        self.base_url = base_url
-        self.api_endpoint = api_endpoint
-        self.exchange_type = exchange_type  # 'mexc' или 'gate'
+    def __init__(self, **kwargs):
+        self.wallet_pair = kwargs.get('wallet_pair')
+        self.base_url = kwargs.get('base_url')
+        self.api_endpoint = kwargs.get('api_endpoint')
+        self.exchange_type = kwargs.get('exchange_type')  # 'mexc' или 'gate'
+        self.trade_type = kwargs.get('trade_type') 
+        #self.order = kwargs.get('order')
         self.session = requests.Session()
         self.session.headers.update({
             'Accept': 'application/json',
@@ -76,7 +78,7 @@ class PriceChecker:
             print(f"Ошибка получения стакана: {e}")
             return None
 
-    def get_bid_ask_prices(self, limit=2, buy_type=None):
+    def get_bid_ask_prices(self, limit=1):
         """
         Получить лучшие цены покупки (bid) и продажи (ask)
         """
@@ -87,22 +89,23 @@ class PriceChecker:
         if self.exchange_type == 'mexc':
             bids = order_book.get('bids', [])
             asks = order_book.get('asks', [])
-
+            print(bids)
             best_bid = float(bids[0][0]) if bids else None  # Первый элемент в bids - лучшая цена покупки
             best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
-        if self.exchange_type == 'gate':
+        elif self.exchange_type == 'gate':
             bids = order_book.get('bids', [])
             asks = order_book.get('asks', [])
-
+            print('-----bids----')
+            print(bids)
             best_bid = float(bids[0][0]) if bids else None  # Первый элемент в bids - лучшая цена покупки
             best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
-        if buy_type == "LONG":
+        if self.trade_type == "LONG":
             return {
                 'best_bid': best_bid
             }
-        if buy_type == "SHORT":
+        elif self.trade_type == "SHORT":
             return {
                 'best_ask': best_ask
             }
