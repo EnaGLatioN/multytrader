@@ -68,6 +68,8 @@ class Command(BaseCommand):
             logger.info(order)
             exchange_type=order.exchange_account.exchange.name
             print(exchange_type)
+            print("DDDDDDDD")
+            print(order.trade_type)
             if order.trade_type == "LONG":
                 long_order = order
                 price_checker_long = PriceChecker(
@@ -80,6 +82,8 @@ class Command(BaseCommand):
                 logger.info('-------------price_checker_long---------------')
                 logger.info(price_checker_long.wallet_pair)
                 logger.info(price_checker_long.trade_type)
+                print("AAAAAAAAAAAAAAAAA")
+                print(price_checker_long)
             else:
                 short_order = order
                 price_checker_short = PriceChecker(

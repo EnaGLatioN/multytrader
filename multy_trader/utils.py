@@ -83,6 +83,7 @@ class PriceChecker:
         Получить лучшие цены покупки (bid) и продажи (ask)
         """
         order_book = self.get_order_book(limit)
+        print("AAAAAAAA")
         if not order_book:
             return None
 
