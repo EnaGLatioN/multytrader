@@ -23,7 +23,12 @@ class Command(BaseCommand):
         api_client = gate_api.ApiClient(configuration)
         api_instance = gate_api.SpotApi(api_client)
         response = api_instance.list_currency_pairs()
-        exchange = Exchange.objects.get(name='GATE')
+        try:
+            exchange = Exchange.objects.get(name='GATE')
+        except Exception as e:
+            logger.error(e)
+            exchange = Exchange.objects.create(name='GATE')
+
         for resp in response:
             PairExchangeMapping.objects.get_or_create(
                 local_name=resp.id,
@@ -36,8 +41,16 @@ class Command(BaseCommand):
         response = requests.get(url)
         data = response.json()
         response.raise_for_status()
-        exchange = Exchange.objects.get(name='MEXC')
-        exchange_gate = Exchange.objects.get(name='GATE')
+        try:
+            exchange_gate = Exchange.objects.get(name='GATE')
+        except Exception as e:
+            logger.error(e)
+            exchange_gate = Exchange.objects.create(name='GATE')
+        try:
+            exchange = Exchange.objects.get(name='MEXC')
+        except Exception as e:
+            logger.error(e)
+            exchange = Exchange.objects.create(name='MEXC')
         for symbol in data['symbols']:
             mexc_local_name = symbol['symbol']
             

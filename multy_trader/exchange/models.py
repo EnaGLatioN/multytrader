@@ -58,17 +58,21 @@ class Exchange(Model):
     )
     max_limit = PositiveIntegerField(
         help_text="Максимальное кол-во",
-        verbose_name="Максимальное кол-во"
+        verbose_name="Максимальное кол-во",
+        default=0
     )
     min_limit = PositiveIntegerField(
         help_text="Минимальное кол-во",
-        verbose_name="Минимальное кол-во"
+        verbose_name="Минимальное кол-во",
+        default = 0
     )
     base_url = CharField(
         max_length=255,
+        default=""
     )
     api_endpoint = CharField(
         max_length=255,
+        default=""
     )
     created_at = DateTimeField(
         auto_now_add=True,
