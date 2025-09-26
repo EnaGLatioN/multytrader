@@ -2,6 +2,7 @@ from uuid import uuid4
 from django.db.models import (
     Model,
     CharField,
+    FloatField,
     PositiveIntegerField,
     UUIDField,
     DateTimeField,
@@ -32,8 +33,7 @@ class Entry(Model):
         primary_key=True,
         verbose_name="ID",
     )
-    profit = PositiveIntegerField(
-        validators=[MinValueValidator(1)], 
+    profit = FloatField(
         blank = True,
         null = True,
         help_text="Колличество монет",
@@ -50,11 +50,11 @@ class Entry(Model):
         help_text="Статус",
         verbose_name="Статус",
     )
-    exit_course = PositiveIntegerField(
+    exit_course = FloatField(
         help_text="Курс выхода",
         verbose_name="Курс выхода"
     )
-    entry_course = PositiveIntegerField(
+    entry_course = FloatField(
         help_text="Курс входа",
         verbose_name="Курс входа"
     )
