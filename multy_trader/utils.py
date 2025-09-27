@@ -90,23 +90,24 @@ class PriceChecker:
         if self.exchange_type == 'mexc':
             bids = order_book.get('bids', [])
             asks = order_book.get('asks', [])
-            print(bids)
             best_bid = float(bids[0][0]) if bids else None  # Первый элемент в bids - лучшая цена покупки
             best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
         elif self.exchange_type == 'gate':
             bids = order_book.get('bids', [])
             asks = order_book.get('asks', [])
-            print('-----bids----')
-            print(bids)
             best_bid = float(bids[0][0]) if bids else None  # Первый элемент в bids - лучшая цена покупки
             best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
         if self.trade_type == "LONG":
+            print('LONG')
+            print(best_bid)
             return {
                 'best_bid': best_bid
             }
         elif self.trade_type == "SHORT":
+            print('SHORT')
+            print(best_ask)
             return {
                 'best_ask': best_ask
             }

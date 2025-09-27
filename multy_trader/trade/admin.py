@@ -1,5 +1,6 @@
 import os
 import signal
+import logging
 from django.contrib.admin import ModelAdmin, TabularInline
 from .models import Entry, Order, Process
 from trader.admin import my_admin_site
@@ -7,6 +8,10 @@ from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair, Exchange
 import subprocess
 from .forms import EntryForm
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+log = logging.getLogger(__name__)
 
 class OrderInline(TabularInline):
     model = Order
@@ -32,19 +37,9 @@ class EntryAdmin(ModelAdmin):
     
     class Media:
         js = (
-            'admin/js/jquery.init.js',  # Стандартный jQuery из Django Admin
-            'js/admin_dynamic_fields.js',  # Ваш скрипт
+            'admin/js/jquery.init.js',
+            'js/admin_dynamic_fields.js',
         )
-
-#    def get_form(self, request, obj=None, **kwargs):
-#        form = super().get_form(request, obj, **kwargs)
-#        if obj:
-#            try:
-#                exchanges = Exchange.objects.all()
-#                form.base_fields['exchange_one'].initial = exchanges
-#            except Exchange.DoesNotExist:
-#                pass
-#        return form
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'wallet_pair': 
@@ -69,28 +64,40 @@ class EntryAdmin(ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         if not change:
+            entry_id = str(form.instance.id)
             with open("process.log", "a") as log_file:
                 active_process = subprocess.Popen(
                     ["poetry", "run", "python", "-m", "manage", "start_entry",
-                     "--entry_id", str(form.instance.id),
+                     "--entry_id", entry_id,
                      ],
                     stdout=log_file,
                     stderr=log_file,
                     text=True
                 )
                 Process.objects.create(
-                    pid=active_process.pid
+                    pid=active_process.pid,
+                    entry_id=entry_id
                 )
 
     def delete_model(self, request, obj):
+        self._delete_process(request, obj)
+        super().delete_model(request, obj)
+    
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            self._delete_process(request, obj)
+        super().delete_queryset(request, queryset)
+
+    def _delete_process(self, request, obj):
         entry_id = obj.id
         try:
-            pid = Process.objects.get(entry_id=str(entry_id)).pid
+            process = Process.objects.get(entry_id=str(entry_id))
+            os.kill(process.pid, signal.SIGTERM)
+            process.delete()
+            #self.message_user(request, f"Успешное удаление входа", level='SUCCESS')
+        except Process.DoesNotExist:
+            log.warning(f"Не найден процесс для входа {entry_id}")
         except Exception as e:
-            print(f"delete_model -- trade -- {e}")
-            pid = None
-        if pid is not None:
-            os.kill(pid, signal.SIGTERM)
-        super().delete_model(request, obj)
+            log.error(f"delete_model -- trade -- {e}")
 
 my_admin_site.register(Entry, EntryAdmin)

@@ -111,9 +111,3 @@ class Command(BaseCommand):
         for local_exchange_wallet in all_wallet:
             if local_exchange_wallet.exchange == exchange:
                 return local_exchange_wallet.local_name
-
-    
-
-
-
-
