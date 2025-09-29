@@ -36,8 +36,8 @@ class Entry(Model):
     profit = FloatField(
         blank = True,
         null = True,
-        help_text="Колличество монет",
-        verbose_name="Колличество монет"
+        help_text="Колличество контрактов",
+        verbose_name="Колличество контрактов"
     )
     shoulder = PositiveIntegerField(
         help_text="Плечо",
