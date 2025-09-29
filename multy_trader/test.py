@@ -1,32 +1,39 @@
-from django.conf import settings
-import ccxt
-
-def mexc_buy_futures_contract():
-    exchange = ccxt.mexc({
-        'apiKey': "mx0vgllmG4zm746Oiy",
-        'secret': "e7ceff7c31584dad9958f6bab36b53d2",
-        'enableRateLimit': True,
-        'options': {
-            'defaultType': 'future',  # Указываем тип торговли - фьючерсы
-        }
-    })
-    # order_status = exchange.fetch_order('C02__600297473038323712078', 'AIOUSDT')
-    # print(order_status)
-
-    # Загружаем рынки для фьючерсов
-    exchange.load_markets()
-
-    # Создание рыночного ордера на фьючерсы
-    order = exchange.create_order(
-        symbol="AIOUSDT",
-        type='market',
-        side="buy",
-        amount=10,  # Количество контрактов
-        params={
-            'leverage': 1,  # Плечо (опционально)
-        }
-    )
-    return order
+from gate_api import ApiClient, Configuration, FuturesApi
+from gate_api.models import FuturesOrder
+import time
+from multy_trader.settings import GATE_HOST
 
 
-print(mexc_buy_futures_contract())
+def gate_buy_futures_contract():
+    """
+    Функция для покупки фьючерсного контракта на GATE по маркету
+    """
+
+    contract = "AIO_USDT"
+    amount = 1
+
+    try:
+        config = Configuration(
+            host=GATE_HOST,
+            key='2a3552173f3b1e48754b465a3e4f8676',
+            secret='ca1a878b75c7582fddf9eacace174b36901fcd63713f9392033d6cc2e58e8b1e'
+        )
+        futures_api = FuturesApi(ApiClient(config))
+        settle = 'usdt'
+
+        order = FuturesOrder(
+            contract=contract,
+            size=amount,
+            price="0",  # Для маркет-ордера
+            tif="ioc"   # Immediate or Cancel - обязательно для маркет-ордера
+        )
+
+        response = futures_api.create_futures_order(settle, order)
+        print("Ордер размещен:", response)
+        return response
+
+    except Exception as e:
+        print("Ошибка при размещении ордера:", e)
+        return None
+
+print(gate_buy_futures_contract())
