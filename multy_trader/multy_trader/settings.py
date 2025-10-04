@@ -86,8 +86,13 @@ WSGI_APPLICATION = 'multy_trader.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': cnf('ENGINE_DB'),
+        'NAME': cnf('NAME_DB'),
+        'USER': cnf('USER_DB'),
+        'PASSWORD': cnf('PASSWORD_DB'),
+        'HOST': cnf('HOST_DB'),
+        'PORT': cnf('PORT_DB'),
+        'CONN_MAX_AGE': 60,
     }
 }
 

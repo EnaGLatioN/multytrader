@@ -1,0 +1,28 @@
+services:
+ multitrader:
+  container_name: multitrader
+  env_file: .env
+  build:
+      context: .
+      dockerfile: Dockerfile
+  restart: unless-stopped
+  ports:
+   - "80:80"
+  networks:
+   - multitrader
+
+ multitrader-db:
+   image: git-reg.uran.news/uraru-2.0/base-images/postgres:13-alpine
+   env_file: .env
+   restart: unless-stopped
+   tty: true
+   networks:
+     - multitrader
+   ports:
+     - "55432:5432"
+   volumes:
+     - /mnt/push-db:/var/lib/postgresql/data
+     - /tmp/dump:/tmp/dump
+
+networks:
+  multitrader:
