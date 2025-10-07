@@ -1,5 +1,8 @@
 import logging
+from multy_trader.multy_trader import settings
 
+API_KEY = settings.BYBIT_API_KEY
+API_SECRET = settings.BYBIT_SECRET_KEY
 from trade.models import TradeType
 from gate_api import ApiClient, Configuration, FuturesApi
 from gate_api.models import FuturesOrder

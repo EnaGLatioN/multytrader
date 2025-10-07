@@ -24,6 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = cnf("SECRET_KEY")
 FIELD_ENCRYPTION_KEY = cnf("FERNET_KEY")
 
+BYBIT_API_KEY = cnf("BYBIT_API_KEY")
+BYBIT_SECRET_KEY = cnf("BYBIT_SECRET_KEY")
+
 GATE_HOST = cnf("GATE_HOST")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = cnf("DEBUG")
