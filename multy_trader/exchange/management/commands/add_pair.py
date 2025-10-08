@@ -13,8 +13,13 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        self.clear()
         self.add_pairs_gate()
-        self.add_pairs_mexc()
+        self.add_pairs_bybit()
+
+    def clear(self):
+        PairExchangeMapping.objects.all().delete()
+        WalletPair.objects.all().delete()
 
     def add_pairs_gate(self):
         configuration = gate_api.Configuration(
@@ -23,38 +28,26 @@ class Command(BaseCommand):
         api_client = gate_api.ApiClient(configuration)
         api_instance = gate_api.SpotApi(api_client)
         response = api_instance.list_currency_pairs()
-        try:
-            exchange = Exchange.objects.get(name='GATE')
-        except Exception as e:
-            logger.error(e)
-            exchange = Exchange.objects.create(name='GATE')
-
+        exchange, _ = Exchange.objects.get_or_create(name='GATE')
         for resp in response:
             PairExchangeMapping.objects.get_or_create(
                 local_name=resp.id,
                 exchange=exchange
             )
-        logger.info(f"Succes added slugs")
+        logger.info(f"Succes added pairs Gate")
 
-    def add_pairs_mexc(self):
-        url = "https://api.mexc.com/api/v3/exchangeInfo"
-        response = requests.get(url)
+    def add_pairs_bybit(self):
+        url = "https://api.bybit.com/v5/market/instruments-info"
+        response = requests.get(url, params = {"category": "linear"})
         data = response.json()
+        
         response.raise_for_status()
-        try:
-            exchange_gate = Exchange.objects.get(name='GATE')
-        except Exception as e:
-            logger.error(e)
-            exchange_gate = Exchange.objects.create(name='GATE')
-        try:
-            exchange = Exchange.objects.get(name='MEXC')
-        except Exception as e:
-            logger.error(e)
-            exchange = Exchange.objects.create(name='MEXC')
-        for symbol in data['symbols']:
-            mexc_local_name = symbol['symbol']
-            
-            double = self.get_double_wallet_pair(mexc_local_name, exchange_gate) 
+        exchange_gate, _ = Exchange.objects.get_or_create(name='GATE')
+        exchange, _ = Exchange.objects.get_or_create(name='BYBIT')
+
+        for symbol in data["result"]["list"]:
+            bybit_local_name = symbol['symbol']
+            double = self.get_double_wallet_pair(bybit_local_name, exchange_gate)
             single_wallet_pair = None
 
             if double:
@@ -62,11 +55,11 @@ class Command(BaseCommand):
                 self.update_double_wallet_pair(double, single_wallet_pair)
 
             PairExchangeMapping.objects.get_or_create(
-                local_name=mexc_local_name,
+                local_name=bybit_local_name,
                 exchange=exchange,
                 wallet_pair=single_wallet_pair
             )
-        logger.info(f"Succes added slugs")
+        logger.info(f"Succes added pairs ByBit")
     
     def get_double_wallet_pair(self,formatted_pair, exchange_gate):
         try:
