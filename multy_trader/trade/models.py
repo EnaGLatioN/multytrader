@@ -50,6 +50,8 @@ class Entry(Model):
         verbose_name="Статус",
     )
     exit_course = FloatField(
+        blank=True,
+        null=True,
         help_text="Курс выхода",
         verbose_name="Курс выхода"
     )
