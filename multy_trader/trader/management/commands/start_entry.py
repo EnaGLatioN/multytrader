@@ -6,6 +6,7 @@ from utils import PriceChecker
 from trade.models import Entry
 from exchange.models import Exchange
 from trade.services import gate_services, mexc_services, bybit_services, services
+from trade.bot import notification
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -53,10 +54,12 @@ class Command(BaseCommand):
 
 
     def start_buy(self, entry_id):
+
         try:
             entry = Entry.objects.get(id=entry_id)
         except Entry.DoesNotExist:
             raise Entry.DoesNotExist
+
         logger.info('-------------entry---------------')
         logger.info(entry)
         orders = entry.order_entry.all()
@@ -91,12 +94,18 @@ class Command(BaseCommand):
                 logger.info('-------------price_checker_short---------------')
                 logger.info(price_checker_short.wallet_pair)
                 logger.info(price_checker_short.trade_type)
-        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "ACTIVE")
+
+        status = "ACTIVE"
+        notification(entry, status)
+        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, status)
         
         long_order.trade_type = "SHORT"
         short_order.trade_type = "LONG"
-        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "COMPLETED")
-        
+
+        status = "COMPLETED"
+        notification(entry, status)
+        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, status)
+
     def long_buy(self, long_order, entry):
         exchange_name = long_order.exchange_account.exchange.name
         if exchange_name == 'gate':

@@ -1,19 +1,32 @@
 import logging
 import requests
-
+from multy_trader.settings import TG_TOKEN
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-TG_TOKEN='8404279029:AAGuIKjNh90u0deU6tOYH4c9H7scoB1bXGA'
 
-def notification(entry):
-    message = get_message(entry)
+def notification(entry, status):
+    message = get_message(entry, status)
     chat_id = entry.chat_id
     send_telegram_message(message,chat_id)
 
-def get_message(entry):
-    message = 'хуй'
+def get_message(entry, status):
+    status_emoji = {
+        'ACTIVE': '⏳',
+        'COMPLETED': '✅'
+    }.get(status, '❓')
+    
+    message = (
+        f"{status_emoji} Вход {entry.id}\n"
+        f"📊 Статус: {status}\n"
+        f"💰 Профит: {entry.profit}\n"
+        f"⚖️ Плечо: {entry.shoulder if entry.shoulder else '-'}\n"
+        f"🔵 Курс входа: {entry.entry_course}\n"
+        f"🔴 Курс выхода: {entry.exit_course if entry.exit_course else '-'}\n"
+        f"💹 Валютная пара: {entry.wallet_pair}\n"
+        f"🕒 Создан: {entry.created_at.strftime('%Y-%m-%d %H:%M')}"
+    )
     return message
 
 def send_telegram_message(message, chat_id):

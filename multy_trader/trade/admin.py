@@ -8,6 +8,7 @@ from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair, Exchange
 import subprocess
 from .forms import EntryForm
+from trade.bot import notification
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,7 +31,7 @@ class OrderInline(TabularInline):
 
 class EntryAdmin(ModelAdmin):
     form = EntryForm
-    fields = ('profit', 'exit_course', 'entry_course', 'shoulder', 'exchange_one', 'exchange_two','wallet_pair')
+    fields = ('profit', 'exit_course', 'entry_course', 'shoulder', 'exchange_one', 'exchange_two','wallet_pair', 'chat_id')
     list_display = ('profit', 'shoulder','exit_course', 'entry_course','wallet_pair', 'status')
     list_filter = ('status',)
     inlines = [OrderInline, OrderInline]

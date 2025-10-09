@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = cnf("SECRET_KEY")
 FIELD_ENCRYPTION_KEY = cnf("FERNET_KEY")
-
+TG_TOKEN = cnf("TG_TOKEN")
 BYBIT_API_KEY = cnf("BYBIT_API_KEY")
 BYBIT_SECRET_KEY = cnf("BYBIT_SECRET_KEY")
 
