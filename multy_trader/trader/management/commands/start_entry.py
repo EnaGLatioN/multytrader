@@ -41,15 +41,16 @@ class Command(BaseCommand):
                 entry.save()
                 flag = False
             else:
-                if getter_course >= entry.exit_course:
-                    continue
+                exit_course = entry.exit_course
+                if entry.exit_course:
+                    if getter_course >= exit_course:
+                        continue
+                    self.long_buy(long_order, entry)
+                    self.short_buy(short_order, entry)
+                    entry.status = status
+                    entry.save()
+                    flag = False
 
-                self.long_buy(long_order, entry)
-                self.short_buy(short_order, entry)
-
-                entry.status = status
-                entry.save()
-                flag = False
 
     def start_buy(self, entry_id):
         try:
