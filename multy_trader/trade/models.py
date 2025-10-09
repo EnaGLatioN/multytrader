@@ -8,7 +8,8 @@ from django.db.models import (
     DateTimeField,
     TextChoices,
     ForeignKey,
-    CASCADE
+    CASCADE,
+    BigIntegerField
 )
 from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair
@@ -69,6 +70,12 @@ class Entry(Model):
         auto_now_add=True,
         help_text="Дата создания",
         verbose_name="Дата создания",
+    )
+    chat_id = BigIntegerField(
+        verbose_name="Чат айди в тг",
+        help_text="Введите чат айди в тг если хотите получать уведомления об этом входе",
+        blank=True,
+        null = True,
     )
     class Meta:
         db_table = "entry"

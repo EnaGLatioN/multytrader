@@ -94,7 +94,6 @@ class EntryAdmin(ModelAdmin):
             process = Process.objects.get(entry_id=str(entry_id))
             os.kill(process.pid, signal.SIGTERM)
             process.delete()
-            #self.message_user(request, f"Успешное удаление входа", level='SUCCESS')
         except Process.DoesNotExist:
             log.warning(f"Не найден процесс для входа {entry_id}")
         except Exception as e:
