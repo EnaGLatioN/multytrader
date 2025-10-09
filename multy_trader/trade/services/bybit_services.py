@@ -2,7 +2,7 @@ import ccxt
 import logging
 
 from trade.models import TradeType
-from multy_trader.multy_trader import settings
+from multy_trader import settings
 
 
 logging.basicConfig(level=logging.INFO)
@@ -29,8 +29,8 @@ def bybit_buy_futures_contract(entry, order):
     try:
         # Инициализация для mainnet
         exchange = ccxt.bybit({
-            'apiKey': settings.BYBIT_API_KEY,
-            'secret': settings.BYBIT_SECRET_KEY,
+            'apiKey': order.exchange_account.api_key,
+            'secret': order.exchange_account.secret_key,
             'sandbox': False,  # FALSE для mainnet!
             'options': {
                 'defaultType': 'linear',

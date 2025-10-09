@@ -12,7 +12,7 @@ services:
    - multitrader
 
  multitrader-db:
-   image: git-reg.uran.news/uraru-2.0/base-images/postgres:13-alpine
+   image: postgres:14-alpine
    env_file: .env
    restart: unless-stopped
    tty: true
@@ -21,7 +21,7 @@ services:
    ports:
      - "55432:5432"
    volumes:
-     - /mnt/push-db:/var/lib/postgresql/data
+     - /mnt/multitrader-db:/var/lib/postgresql/data
      - /tmp/dump:/tmp/dump
 
 networks:

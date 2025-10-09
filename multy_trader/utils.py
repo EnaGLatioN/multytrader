@@ -1,7 +1,6 @@
 import os
 import django
 import requests
-from django.conf import settings
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
@@ -99,7 +98,6 @@ class PriceChecker:
         order_book = self.get_order_book(limit)
         if not order_book:
             return None
-
         if self.exchange_type == 'mexc':
             bids = order_book.get('bids', [])
             asks = order_book.get('asks', [])
@@ -113,9 +111,8 @@ class PriceChecker:
             best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
         if self.exchange_type == 'bybit':
-            result = order_book
-            bids = result.get('b', [])  # Bybit использует 'b' для bids
-            asks = result.get('a', [])  # Bybit использует 'a' для asks
+            bids = order_book.get("result").get('b', [])  # Bybit использует 'b' для bids
+            asks = order_book.get("result").get('a', [])  # Bybit использует 'a' для asks
             best_bid = float(bids[0][0]) if bids else None
             best_ask = float(asks[0][0]) if asks else None
 
