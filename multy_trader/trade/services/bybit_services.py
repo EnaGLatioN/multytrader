@@ -1,14 +1,17 @@
 import ccxt
 import logging
 
-# Настройка логирования
+from trade.models import TradeType
+from multy_trader.multy_trader import settings
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def buy_future_bybit_mainnet(api_key: str, api_secret: str, symbol: str, amount: float,
-                             order_type: str = 'market', price: float = None,
-                             leverage: int = 10, reduce_only: bool = False):
+
+def bybit_buy_futures_contract(entry, order):
+
     """
     Покупка фьючерса на Bybit mainnet
 
@@ -26,8 +29,8 @@ def buy_future_bybit_mainnet(api_key: str, api_secret: str, symbol: str, amount:
     try:
         # Инициализация для mainnet
         exchange = ccxt.bybit({
-            'apiKey': api_key,
-            'secret': api_secret,
+            'apiKey': settings.BYBIT_API_KEY,
+            'secret': settings.BYBIT_SECRET_KEY,
             'sandbox': False,  # FALSE для mainnet!
             'options': {
                 'defaultType': 'linear',
@@ -38,43 +41,31 @@ def buy_future_bybit_mainnet(api_key: str, api_secret: str, symbol: str, amount:
         logger.info("🔗 Подключаемся к Bybit mainnet...")
 
         # Загружаем рынки
-        markets = exchange.load_markets()
-        logger.info(f"✅ Рынки загружены, проверяем символ {symbol}")
+        # markets = exchange.load_markets()
 
-        # Проверяем доступность символа
-        if symbol not in markets:
-            available_symbols = [s for s in markets.keys() if 'USDT' in s][:5]
-            raise Exception(f"Символ {symbol} не найден. Доступные: {available_symbols}")
+        # balance = exchange.fetch_balance()
+        # usdt_balance = balance['total'].get('USDT', 0)
+        # logger.info(f"💰 Баланс USDT: {usdt_balance}")
 
-        # Проверяем баланс
-        balance = exchange.fetch_balance()
-        usdt_balance = balance['total'].get('USDT', 0)
-        logger.info(f"💰 Баланс USDT: {usdt_balance}")
-
-        if usdt_balance <= 0:
-            raise Exception("Недостаточно USDT на балансе")
-
-        # Устанавливаем плечо
         try:
-            exchange.set_leverage(leverage, symbol)
-            logger.info(f"⚖️ Плечо установлено: {leverage}x")
+            exchange.set_leverage(entry.shoulder, entry.wallet_pair.slug)
+            logger.info(f"⚖️ Плечо установлено: {entry.shoulder}x")
         except Exception as e:
             logger.warning(f"Не удалось установить плечо: {e}")
 
-        # Параметры ордера
         order_params = {
-            'symbol': symbol,
-            'type': order_type,
-            'side': 'buy',
-            'amount': amount,
+            'symbol': entry.wallet_pair.slug,
+            'type': 'market',
+            'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
+            'amount': entry.profit,
             'params': {
-                'reduceOnly': reduce_only,
+                'reduceOnly': False,
             }
         }
 
         # Для лимитных ордеров добавляем цену
-        if order_type == 'limit' and price is not None:
-            order_params['price'] = price
+        # if order_type == 'limit' and price is not None:
+        #     order_params['price'] = price
 
         logger.info(f"🛒 Создаем ордер: {order_params}")
 
@@ -113,7 +104,7 @@ def buy_future_bybit_mainnet(api_key: str, api_secret: str, symbol: str, amount:
         return {'success': False, 'error': error_msg}
 
 
-# Дополнительные функции
+
 def get_balance_mainnet(api_key: str, api_secret: str):
     """Получение баланса mainnet"""
     exchange = ccxt.bybit({
@@ -126,40 +117,6 @@ def get_balance_mainnet(api_key: str, api_secret: str):
     return balance
 
 
-def cancel_order_mainnet(api_key: str, api_secret: str, order_id: str, symbol: str):
-    """Отмена ордера"""
-    exchange = ccxt.bybit({
-        'apiKey': api_key,
-        'secret': api_secret,
-        'sandbox': False,
-    })
-
-    return exchange.cancel_order(order_id, symbol)
-
-
-# Пример использования
-if __name__ == "__main__":
-    # Ваши реальные ключи от mainnet
-    from multy_trader.multy_trader import settings
-
-    API_KEY = settings.BYBIT_API_KEY
-    API_SECRET = settings.BYBIT_SECRET_KEY
-
-    # Пример покупки
-    result = buy_future_bybit_mainnet(
-        api_key=API_KEY,
-        api_secret=API_SECRET,
-        symbol="BTC/USDT:USDT",
-        amount=0.001,
-        order_type='market',
-        leverage=10
-    )
-
-    print("Результат:", result)
-
-    # Проверка баланса
-    balance = get_balance_mainnet(API_KEY, API_SECRET)
-    print("Баланс:", balance['total'])
 
     """ LOGS
     INFO:__main__:🔗 Подключаемся к Bybit mainnet...

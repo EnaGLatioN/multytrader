@@ -1,8 +1,5 @@
 import logging
-from multy_trader.multy_trader import settings
 
-API_KEY = settings.BYBIT_API_KEY
-API_SECRET = settings.BYBIT_SECRET_KEY
 from trade.models import TradeType
 from gate_api import ApiClient, Configuration, FuturesApi
 from gate_api.models import FuturesOrder
@@ -13,13 +10,17 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def gate_buy_futures_contract(entry,order):
+def gate_buy_futures_contract(entry, order):
     """
-    Функция для покупки фьючерсного контракта на GATE по маркету
+    Функция для покупки фьючерсного контракта на GATE по маркету с установкой плеча
+
+    :param entry: объект entry с данными о торговой паре
+    :param order: объект order с данными об ордере
+    :param leverage: плечо (по умолчанию 10x)
     """
 
-    contract=entry.wallet_pair.slug # Например, BTC_USDT для бессрочного контракта
-    amount=entry.profit if order.trade_type == TradeType.LONG else -entry.profit # Количество BTC превращать из суммы в кол-во
+    contract = entry.wallet_pair.slug  # Например, BTC_USDT для бессрочного контракта
+    amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit  # Количество BTC превращать из суммы в кол-во
 
     try:
         config = Configuration(
@@ -30,17 +31,26 @@ def gate_buy_futures_contract(entry,order):
         futures_api = FuturesApi(ApiClient(config))
         settle = 'usdt'
 
-        order = FuturesOrder(
+        # 1. Сначала устанавливаем плечо
+        try:
+            leverage_response = futures_api.update_position_leverage(settle, contract, entry.shoulder)
+            logger.info(f"Плечо установлено: {entry.shoulder}x - {leverage_response}")
+        except Exception as leverage_error:
+            logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
+            # Продолжаем выполнение, так как возможно плечо уже установлено
+
+        # 2. Размещаем ордер
+        futures_order = FuturesOrder(
             contract=contract,
-            size=amount,
+            size=amount if order.trade_type == TradeType.LONG else -amount,
             price="0",  # Для маркет-ордера
-            tif="ioc"   # Immediate or Cancel - обязательно для маркет-ордера
+            tif="ioc"  # Immediate or Cancel - обязательно для маркет-ордера
         )
 
-        response = futures_api.create_futures_order(settle, order)
-        logger.info("Ордер размещен:", response)
+        response = futures_api.create_futures_order(settle, futures_order)
+        logger.info(f"Ордер размещен с плечом {entry.shoulder}x: {response}")
         return response
 
     except Exception as e:
-        logger.error("Ошибка при размещении ордера: - gate_buy_futures_contract", e)
+        logger.error(f"Ошибка при размещении ордера с плечом {entry.shoulder}x - gate_buy_futures_contract: {e}")
         return None

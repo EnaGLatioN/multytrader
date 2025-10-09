@@ -1,10 +1,12 @@
 from .gate_services import gate_buy_futures_contract
 from .mexc_services import mexc_buy_futures_contract
+from .bybit_services import bybit_buy_futures_contract
 
 
 exchanges = {
     'MEXC': mexc_buy_futures_contract,
-    'GATE': gate_buy_futures_contract
+    'GATE': gate_buy_futures_contract,
+    "BYBIT": bybit_buy_futures_contract
 }
 
 def send_order_to_exchange_api(entry):

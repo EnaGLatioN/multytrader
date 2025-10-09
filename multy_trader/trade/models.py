@@ -10,7 +10,6 @@ from django.db.models import (
     ForeignKey,
     CASCADE
 )
-from django.core.validators import MinValueValidator
 from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair
 

@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from utils import PriceChecker
 from trade.models import Entry
 from exchange.models import Exchange
-from trade.services import gate_services, mexc_services
+from trade.services import gate_services, mexc_services, bybit_services, services
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
+
     def add_arguments(self, parser):
         parser.add_argument('--entry_id',  type=str, nargs='?', help='id входа ордера')
 
@@ -21,7 +22,7 @@ class Command(BaseCommand):
 
     def futures_buy(self, price_checker_long, price_checker_short, long_order, short_order, entry, flag, status):
         while flag:
-            time.sleep(2)
+            time.sleep(1)
             bid = price_checker_long.get_bid_ask_prices() # было long_order.trade_type
             ask = price_checker_short.get_bid_ask_prices() # было short_order.trade_type
             getter_course = ((bid.get("best_bid") / ask.get("best_ask")) - 1) * 100
@@ -33,10 +34,9 @@ class Command(BaseCommand):
                 if getter_course <= entry.entry_course:
                     continue
 
-                mexc_services.mexc_buy_futures_contract(entry,
-                                                        long_order if long_order.exchange_account.exchange.name.lower() == 'mexc' else short_order)
-                gate_services.gate_buy_futures_contract(entry,
-                                                        short_order if short_order.exchange_account.exchange.name.lower() == 'gate' else long_order)
+                self.long_buy(long_order, entry)
+                self.short_buy(short_order, entry)
+
                 entry.status = status
                 entry.save()
                 flag = False
@@ -44,10 +44,9 @@ class Command(BaseCommand):
                 if getter_course >= entry.exit_course:
                     continue
 
-                mexc_services.mexc_buy_futures_contract(entry,
-                                                        long_order if long_order.exchange_account.exchange.name.lower() == 'mexc' else short_order)
-                gate_services.gate_buy_futures_contract(entry,
-                                                        short_order if short_order.exchange_account.exchange.name.lower() == 'gate' else long_order)
+                self.long_buy(long_order, entry)
+                self.short_buy(short_order, entry)
+
                 entry.status = status
                 entry.save()
                 flag = False
@@ -67,9 +66,6 @@ class Command(BaseCommand):
             logger.info('-------------order---------------')
             logger.info(order)
             exchange_type=order.exchange_account.exchange.name
-            print(exchange_type)
-            print("DDDDDDDD")
-            print(order.trade_type)
             if order.trade_type == "LONG":
                 long_order = order
                 price_checker_long = PriceChecker(
@@ -82,8 +78,6 @@ class Command(BaseCommand):
                 logger.info('-------------price_checker_long---------------')
                 logger.info(price_checker_long.wallet_pair)
                 logger.info(price_checker_long.trade_type)
-                print("AAAAAAAAAAAAAAAAA")
-                print(price_checker_long)
             else:
                 short_order = order
                 price_checker_short = PriceChecker(
@@ -102,12 +96,28 @@ class Command(BaseCommand):
         short_order.trade_type = "LONG"
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, "COMPLETED")
         
-    
+    def long_buy(self, long_order, entry):
+        exchange_name = long_order.exchange_account.exchange.name
+        if exchange_name == 'gate':
+            gate_services.gate_buy_futures_contract(entry, long_order)
+        if exchange_name == 'mexc':
+            mexc_services.mexc_buy_futures_contract(entry, long_order)
+        if exchange_name == 'bybit':
+            bybit_services.bybit_buy_futures_contract(entry, long_order)
+
+    def short_buy(self, short_order, entry):
+        exchange_name = short_order.exchange_account.exchange.name
+        if exchange_name == 'gate':
+            gate_services.gate_buy_futures_contract(entry, short_order)
+        if exchange_name == 'mexc':
+            mexc_services.gate_buy_futures_contract(entry, short_order)
+        if exchange_name == 'bybit':
+            bybit_services.gate_buy_futures_contract(entry, short_order)
+
     def get_wallet_pair(self, wallet_pair, exchange) -> str:
         """Достает имя валютной пары привязанное к нужной бирже"""
 
         all_wallet = wallet_pair.exchange_mappings.all()
-        exchange = Exchange.objects.get(name=exchange)
         for local_exchange_wallet in all_wallet:
-            if local_exchange_wallet.exchange == exchange:
+            if local_exchange_wallet.exchange == Exchange.objects.get(name=exchange):
                 return local_exchange_wallet.local_name

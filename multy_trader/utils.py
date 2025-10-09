@@ -3,6 +3,7 @@ import django
 import requests
 from django.conf import settings
 
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
 django.setup()
 
@@ -34,6 +35,11 @@ class PriceChecker:
             params = {'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT"}
         elif self.exchange_type == 'gate':
             params = {'currency_pair': self.wallet_pair if self.wallet_pair else "BTC_USDT"}
+        elif self.exchange_type == 'bybit': #"/v5/market/tickers" api endpoint
+            params = {
+                'category': 'spot',  # для спот торговли
+                'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT"
+            }
         else:
             params = {}
 
@@ -65,6 +71,14 @@ class PriceChecker:
                 'currency_pair': self.wallet_pair if self.wallet_pair else "BTC_USDT",
                 'limit': limit
             }
+        elif self.exchange_type == 'bybit':
+            # Bybit API для фьючерсов
+            endpoint = "/v5/market/orderbook"
+            params = {
+                'category': 'linear',  # 'linear' для USDT-фьючерсов, 'inverse' для инверсных
+                'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT",
+                'limit': limit
+            }
         else:
             return None
 
@@ -83,7 +97,6 @@ class PriceChecker:
         Получить лучшие цены покупки (bid) и продажи (ask)
         """
         order_book = self.get_order_book(limit)
-        print("AAAAAAAA")
         if not order_book:
             return None
 
@@ -93,21 +106,25 @@ class PriceChecker:
             best_bid = float(bids[0][0]) if bids else None  # Первый элемент в bids - лучшая цена покупки
             best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
-        elif self.exchange_type == 'gate':
+        if self.exchange_type == 'gate':
             bids = order_book.get('bids', [])
             asks = order_book.get('asks', [])
             best_bid = float(bids[0][0]) if bids else None  # Первый элемент в bids - лучшая цена покупки
             best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
+        if self.exchange_type == 'bybit':
+            result = order_book
+            bids = result.get('b', [])  # Bybit использует 'b' для bids
+            asks = result.get('a', [])  # Bybit использует 'a' для asks
+            best_bid = float(bids[0][0]) if bids else None
+            best_ask = float(asks[0][0]) if asks else None
+
         if self.trade_type == "LONG":
-            print('LONG')
-            print(best_bid)
             return {
                 'best_bid': best_bid
             }
+
         elif self.trade_type == "SHORT":
-            print('SHORT')
-            print(best_ask)
             return {
                 'best_ask': best_ask
             }
@@ -144,6 +161,15 @@ class PriceChecker:
                     'volume': float(ticker_data['quote_volume']),
                     'change': float(ticker_data['change_percentage']),
                 }
+        elif self.exchange_type == 'bybit':
+                # Bybit возвращает данные в отдельном объекте
+            return {
+                'price': float(ticker.get('lastPrice', 0)),
+                'high': float(ticker.get('highPrice24h', 0)),
+                'low': float(ticker.get('lowPrice24h', 0)),
+                'volume': float(ticker.get('volume24h', 0)),
+                'change': float(ticker.get('price24hPcnt', 0)) * 100,  # Конвертируем в проценты
+            }
         return None
 
     def get_full_market_data(self, limit=10):
@@ -161,43 +187,3 @@ class PriceChecker:
             return bid_ask_data
         else:
             return None
-
-
-
-# if __name__ == "__main__":
-#     print("MEXC Market Data:")
-#     mexc_checker = PriceChecker(
-#         wallet_pair="BTCUSDT",
-#         base_url=settings.BASE_URL_MEXC,
-#         api_endpoint=settings.API_ENDPOINT_MEXC,
-#         exchange_type='mexc'
-#     )
-#
-#     # Получаем полные данные
-#     mexc_data = mexc_checker.get_full_market_data()
-#     print("Текущая цена:", mexc_data.get('price'))
-#     print("Лучшая цена покупки (bid):", mexc_data.get('best_bid'))
-#     print("Лучшая цена продажи (ask):", mexc_data.get('best_ask'))
-#     print("Спред:", mexc_data.get('spread'))
-#     print("Спред (%):", f"{mexc_data.get('spread_percent', 0):.4f}%")
-#
-#     print("\n" + "=" * 50 + "\n")
-#
-#     print("Gate.io Market Data:")
-#     gate_checker = PriceChecker(
-#         wallet_pair="BTC_USDT",
-#         base_url=settings.BASE_URL_GATE,
-#         api_endpoint=settings.API_ENDPOINT_GATE,
-#         exchange_type='gate'
-#     )
-#
-#     # Получаем только стакан
-#     gate_bid_ask = gate_checker.get_bid_ask_prices()
-#     print("Лучшая цена покупки (bid):", gate_bid_ask.get('best_bid'))
-#     print("Лучшая цена продажи (ask):", gate_bid_ask.get('best_ask'))
-#     print("Спред:", gate_bid_ask.get('spread'))
-#     print("Спред (%):", f"{gate_bid_ask.get('spread_percent', 0):.4f}%")
-#
-#     # Можно также получить полные данные
-#     gate_full_data = gate_checker.get_full_market_data()
-#     print("Текущая цена:", gate_full_data.get('price'))
