@@ -6,12 +6,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def notification(entry, status):
-    message = get_message(entry, status)
+def notification(entry):
+    message = get_message(entry)
     chat_id = entry.chat_id
     send_telegram_message(message,chat_id)
 
-def get_message(entry, status):
+def get_message(entry):
+    status = entry.status
     status_emoji = {
         'ACTIVE': '⏳',
         'COMPLETED': '✅'

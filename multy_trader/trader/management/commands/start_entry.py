@@ -22,34 +22,38 @@ class Command(BaseCommand):
         self.start_buy(options.get("entry_id", None))
 
     def futures_buy(self, price_checker_long, price_checker_short, long_order, short_order, entry, flag, status):
+        logger.info('-------STATUS------')
+        logger.info(status)
         while flag:
             time.sleep(1)
-            bid = price_checker_long.get_bid_ask_prices() # было long_order.trade_type
-            ask = price_checker_short.get_bid_ask_prices() # было short_order.trade_type
+            bid = price_checker_long.get_bid_ask_prices()
+            ask = price_checker_short.get_bid_ask_prices()
             getter_course = ((bid.get("best_bid") / ask.get("best_ask")) - 1) * 100
-            if status == "ACTIVE":
-                logger.info('-------getter_course------')
-                logger.info(getter_course)
+            if status == "WAIT":
+                
+                logger.info('-------STATUS------')
+                logger.info(status)
                 logger.info('-------entry.entry_course------')
                 logger.info(entry.entry_course)
+
                 if getter_course <= entry.entry_course:
                     continue
 
                 self.long_buy(long_order, entry)
                 self.short_buy(short_order, entry)
 
-                entry.status = status
-                entry.save()
+                self.update_status_entry(entry, "ACTIVE")
                 flag = False
-            else:
+            elif status == "ACTIVE":
                 exit_course = entry.exit_course
                 if entry.exit_course:
                     if getter_course >= exit_course:
                         continue
                     self.long_buy(long_order, entry)
                     self.short_buy(short_order, entry)
-                    entry.status = status
-                    entry.save()
+
+                    self.update_status_entry(entry, "COMPLETED")
+
                     flag = False
 
 
@@ -95,16 +99,19 @@ class Command(BaseCommand):
                 logger.info(price_checker_short.wallet_pair)
                 logger.info(price_checker_short.trade_type)
 
-        status = "ACTIVE"
-        notification(entry, status)
-        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, status)
+        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, entry.status)
         
         long_order.trade_type = "SHORT"
         short_order.trade_type = "LONG"
 
-        status = "COMPLETED"
-        notification(entry, status)
-        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, status)
+        self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, entry.status)
+
+    def update_status_entry(self, entry, status):
+        """Обновляет статус входа"""
+
+        entry.status = status
+        entry.save()
+        notification(entry)
 
     def long_buy(self, long_order, entry):
         exchange_name = long_order.exchange_account.exchange.name
