@@ -11,7 +11,6 @@ import subprocess
 from .forms import EntryForm
 from trade.bot import notification
 
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 

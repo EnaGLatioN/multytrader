@@ -33,7 +33,7 @@ class CustomUserAdmin(UserAdmin):
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 class CustomProxy(ModelAdmin):
-    fields = ('ip_address', 'port', 'login', 'password', 'is_active')
+    fields = ('ip_address', 'port', 'login', 'password', 'protocol', 'is_active')
     list_display = ('ip_address', 'port', 'is_active')
     search_fields = ('ip_address',)
     search_help_text = 'Введите IP-адрес для поиска'

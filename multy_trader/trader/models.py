@@ -30,6 +30,10 @@ class Proxy(Model):
         primary_key=True,
         verbose_name="ID",
     )
+    protocol = CharField(
+        max_length=10, 
+        default='http'
+    )
     ip_address = GenericIPAddressField(
         help_text="IP адрес прокси-сервера",
         verbose_name="IP адрес",
@@ -41,11 +45,15 @@ class Proxy(Model):
         verbose_name="Порт"
     )
     login = CharField(
+        blank = True,
+        null = True,
         help_text="Логин для аутентификации",
         verbose_name="Логин",
         max_length=128
     )
     password = EncryptedCharField(
+        blank = True,
+        null = True,
         help_text="Пароль для аутентификации",
         verbose_name="Пароль",
         max_length=250
@@ -72,7 +80,12 @@ class Proxy(Model):
 
     def __str__(self):
         return f"{self.ip_address}:{self.port}"
-
+    
+    def get_proxy_url(self):
+        if self.login and self.password:
+            return f"{self.protocol}://{self.login}:{self.password}@{self.ip_address}:{self.port}"
+        else:
+            return f"{self.protocol}://{self.ip_address}:{self.port}"
 
 class ExchangeAccount(Model):
     """
@@ -136,7 +149,6 @@ class CustomUser(AbstractUser):
         related_name='customuser_wallet_pairs',
         verbose_name='Валютные пары',
         blank=True,
-        null=True,
     )
     groups = ManyToManyField(
         Group,
@@ -155,7 +167,6 @@ class CustomUser(AbstractUser):
         related_name="user_exchange_account",
         verbose_name="Биржевый аккаунт",
         blank=True,
-        null=True,
     )
     maximum_amount = PositiveIntegerField(
         verbose_name="Максимальная сумма",
