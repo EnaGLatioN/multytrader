@@ -16,12 +16,12 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {
-            'fields': ('exchange_account', 'wallet_pairs', 'maximum_amount', 'chat_id'),
+            'fields': ('exchange_account', 'wallet_pairs', 'maximum_amount'),
         }),
     )
     fieldsets = UserAdmin.fieldsets + (
          ('Дополнительная информация', {
-             'fields': ('exchange_account', 'wallet_pairs', 'maximum_amount', 'chat_id'),
+             'fields': ('exchange_account', 'wallet_pairs', 'maximum_amount'),
          }),
     )
     def formfield_for_manytomany(self, db_field, request, **kwargs):

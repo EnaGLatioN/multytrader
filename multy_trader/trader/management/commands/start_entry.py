@@ -2,11 +2,10 @@ import time
 import logging
 from django.core.management.base import BaseCommand
 
-from utils import PriceChecker
+from utils import PriceChecker, PriceCheckerFacktory
 from trade.models import Entry
 from exchange.models import Exchange
 from trade.services import gate_services, mexc_services, bybit_services, services
-from trade.bot import notification
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -59,45 +58,22 @@ class Command(BaseCommand):
 
     def start_buy(self, entry_id):
 
-        try:
-            entry = Entry.objects.get(id=entry_id)
-        except Entry.DoesNotExist:
-            raise Entry.DoesNotExist
+        entry = self.get_entry(entry_id)
 
-        logger.info('-------------entry---------------')
-        logger.info(entry)
         orders = entry.order_entry.all()
         long_order = None
         short_order = None
         flag = True
         for order in orders:
-            logger.info('-------------order---------------')
-            logger.info(order)
-            exchange_type=order.exchange_account.exchange.name
+            exchange_type = order.exchange_account.exchange.name
+            wallet_pair = self.get_wallet_pair(entry.wallet_pair, exchange_type)
+
             if order.trade_type == "LONG":
                 long_order = order
-                price_checker_long = PriceChecker(
-                                        wallet_pair=self.get_wallet_pair(entry.wallet_pair, exchange_type),
-                                        base_url=order.exchange_account.exchange.base_url,
-                                        api_endpoint=order.exchange_account.exchange.api_endpoint,
-                                        exchange_type=exchange_type.lower(),
-                                        trade_type = "LONG"
-                                    )
-                logger.info('-------------price_checker_long---------------')
-                logger.info(price_checker_long.wallet_pair)
-                logger.info(price_checker_long.trade_type)
+                price_checker_long = PriceCheckerFacktory.create_price_checker(wallet_pair, order)
             else:
                 short_order = order
-                price_checker_short = PriceChecker(
-                                    wallet_pair=self.get_wallet_pair(entry.wallet_pair, exchange_type),
-                                    base_url=order.exchange_account.exchange.base_url,
-                                    api_endpoint=order.exchange_account.exchange.api_endpoint,
-                                    exchange_type = exchange_type.lower(),
-                                    trade_type = "SHORT"
-                                )
-                logger.info('-------------price_checker_short---------------')
-                logger.info(price_checker_short.wallet_pair)
-                logger.info(price_checker_short.trade_type)
+                price_checker_short = PriceCheckerFacktory.create_price_checker(wallet_pair, order)
 
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, entry.status)
         
@@ -106,12 +82,18 @@ class Command(BaseCommand):
 
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, entry.status)
 
+
+    def get_entry(self, entry_id):
+        try:
+            return Entry.objects.get(id=entry_id)
+        except Entry.DoesNotExist:
+            raise Entry.DoesNotExist
+
     def update_status_entry(self, entry, status):
         """Обновляет статус входа"""
 
         entry.status = status
         entry.save()
-        notification(entry)
 
     def long_buy(self, long_order, entry):
         exchange_name = long_order.exchange_account.exchange.name

@@ -184,3 +184,16 @@ class PriceChecker:
             return bid_ask_data
         else:
             return None
+
+
+class PriceCheckerFacktory():
+    @staticmethod
+    def create_price_checker(wallet_pair, order):
+        exchange = order.exchange_account.exchange
+        return PriceChecker(
+            wallet_pair=wallet_pair,
+            base_url=exchange.base_url,
+            api_endpoint=exchange.api_endpoint,
+            exchange_type=exchange.name.lower(),
+            trade_type = order.trade_type
+        )

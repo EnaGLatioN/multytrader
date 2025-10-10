@@ -4,14 +4,17 @@ from .models import Entry
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
 
+def get_exchanges():
+    return Exchange.objects.all()
+
 class EntryForm(ModelForm):
     exchange_one = ModelChoiceField(
-        queryset=Exchange.objects.all(),
+        queryset=get_exchanges(),
         required=False,
         label="Выберите первую биржу"
     )
     exchange_two = ModelChoiceField(
-        queryset=Exchange.objects.all(),
+        queryset=get_exchanges(),
         required=False,
         label="Выберите вторую биржу"
     )

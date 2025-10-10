@@ -7,14 +7,17 @@ logger = logging.getLogger(__name__)
 
 
 def notification(entry):
-    message = get_message(entry)
-    chat_id = entry.chat_id
-    send_telegram_message(message,chat_id)
+    if chat_id := entry.chat_id:
+        send_telegram_message(get_message(entry),chat_id)
 
 def get_message(entry):
+    """Формирует сообщение для отправки в чат тг"""
+
     status = entry.status
     status_emoji = {
-        'ACTIVE': '⏳',
+        'WAIT': '⏳',
+        'STOPPED': '⛔️',
+        'ACTIVE': '♻️',
         'COMPLETED': '✅'
     }.get(status, '❓')
     
@@ -31,6 +34,8 @@ def get_message(entry):
     return message
 
 def send_telegram_message(message, chat_id):
+    """Отправляет сообщение в чат тг"""
+
     try:
         payload = {
             'chat_id': chat_id,
@@ -40,9 +45,6 @@ def send_telegram_message(message, chat_id):
         if response.status_code != 200:
             logger.error(f"Ошибка отправки уведомления в чат {chat_id}: {response.text}")
         else:
-            logger.info(f"Уведомление отправлено в чат {chat_id}")
+            logger.debug(f"Уведомление отправлено в чат {chat_id}")
     except Exception as e:
         logger.error(f"Ошибка в send_telegram_message: {str(e)}")
-
-if __name__ == '__main__':
-    notification()

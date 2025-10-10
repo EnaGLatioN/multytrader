@@ -9,7 +9,8 @@ from django.db.models import (
     TextChoices,
     ForeignKey,
     CASCADE,
-    BigIntegerField
+    BigIntegerField,
+    BooleanField
 )
 from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair
@@ -19,6 +20,7 @@ class EntryStatusType(TextChoices):
     WAIT = "WAIT", "В Ожидании"
     ACTIVE = "ACTIVE", "Активно"
     COMPLETED = "COMPLETED", "Завершено"
+    STOPPED = "STOPPED", "Остановлен"
 
 
 class TradeType(TextChoices):
@@ -32,6 +34,11 @@ class Entry(Model):
         help_text="Уникальный идентификатор ",
         primary_key=True,
         verbose_name="ID",
+    )
+    alias = CharField(
+        blank = True,
+        null = True,
+        max_length = 50
     )
     profit = FloatField(
         blank = True,
@@ -47,6 +54,7 @@ class Entry(Model):
     status = CharField(
         choices=EntryStatusType.choices,
         default=EntryStatusType.WAIT.value,
+        max_length = 50,
         help_text="Статус",
         verbose_name="Статус",
     )
@@ -77,6 +85,11 @@ class Entry(Model):
         blank=True,
         null = True,
     )
+    is_active = BooleanField(
+        default=True,
+        help_text="Активен ли вход",
+        verbose_name="Активность"
+    )
     class Meta:
         db_table = "entry"
         verbose_name = "Вход"
@@ -96,6 +109,7 @@ class Order(Model):
     )
     trade_type = CharField(
         choices=TradeType.choices,
+        max_length = 50,
         help_text="Тип сделки",
         verbose_name="Тип сделки",
     )
@@ -113,6 +127,8 @@ class Order(Model):
     )
     proxy = ForeignKey(
         Proxy,
+        blank=True,
+        null=True,
         on_delete=CASCADE,
         related_name="order_proxy",
         verbose_name="Прокси",
@@ -140,6 +156,7 @@ class Process(Model):
     )
     entry_id = CharField(
         blank=True,
+        max_length=255,
         help_text="ID ENTRY",
         verbose_name="ID ENTRY",
     )
