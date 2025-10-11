@@ -1,7 +1,7 @@
 import os
 import django
 import requests
-
+from exchange.models import Exchange
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
 django.setup()
@@ -186,13 +186,14 @@ class PriceChecker:
             return None
 
 
-def get_wallet_pair(self, wallet_pair, exchange) -> str:
+def get_wallet_pair(wallet_pair, exchange) -> str:
     """Достает имя валютной пары привязанное к нужной бирже"""
 
     all_wallet = wallet_pair.exchange_mappings.all()
     for local_exchange_wallet in all_wallet:
         if local_exchange_wallet.exchange == Exchange.objects.get(name=exchange):
             return local_exchange_wallet.local_name
+
 
 class PriceCheckerFactory():
     @staticmethod
