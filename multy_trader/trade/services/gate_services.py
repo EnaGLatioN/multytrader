@@ -21,9 +21,10 @@ def gate_buy_futures_contract(entry, order):
     :param leverage: плечо (по умолчанию 10x)
     """
 
-    symbol = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name),  # Например, BTC_USDT для бессрочного контракта
     amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit  # Количество BTC превращать из суммы в кол-во
     exchange_account = order.exchange_account
+    symbol = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name),  # Например, BTC_USDT для бессрочного контракта
+
     proxy = order.proxy
 
     try:
