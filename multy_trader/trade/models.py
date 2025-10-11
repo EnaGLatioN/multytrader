@@ -38,7 +38,9 @@ class Entry(Model):
     alias = CharField(
         blank = True,
         null = True,
-        max_length = 50
+        max_length = 50,
+        help_text="Добавьте псевдоним входа для вашего удобства",
+        verbose_name="Псевдоним"
     )
     profit = FloatField(
         blank = True,
@@ -83,7 +85,7 @@ class Entry(Model):
         verbose_name="Чат айди в тг",
         help_text="Введите чат айди в тг если хотите получать уведомления об этом входе",
         blank=True,
-        null = True,
+        null=True,
     )
     is_active = BooleanField(
         default=True,

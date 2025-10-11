@@ -65,6 +65,7 @@ class Command(BaseCommand):
         short_order = None
         flag = True
         for order in orders:
+
             exchange_type = order.exchange_account.exchange.name
             wallet_pair = self.get_wallet_pair(entry.wallet_pair, exchange_type)
 
@@ -109,9 +110,9 @@ class Command(BaseCommand):
         if exchange_name == 'gate':
             gate_services.gate_buy_futures_contract(entry, short_order)
         if exchange_name == 'mexc':
-            mexc_services.gate_buy_futures_contract(entry, short_order)
+            mexc_services.mexc_buy_futures_contract(entry, short_order)
         if exchange_name == 'bybit':
-            bybit_services.gate_buy_futures_contract(entry, short_order)
+            bybit_services.bybit_buy_futures_contract(entry, short_order)
 
     def get_wallet_pair(self, wallet_pair, exchange) -> str:
         """Достает имя валютной пары привязанное к нужной бирже"""

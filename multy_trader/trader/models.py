@@ -13,7 +13,8 @@ from django.db.models import (
     BooleanField,
     DateTimeField,
     UniqueConstraint,
-    ForeignKey
+    ForeignKey,
+    BigIntegerField
 )
 from exchange.models import Exchange, WalletPair
 
@@ -179,6 +180,12 @@ class CustomUser(AbstractUser):
     maximum_amount = PositiveIntegerField(
         verbose_name="Максимальная сумма",
         help_text="Максимальная сумма в рублях",
+        blank=True,
+        null = True,
+    )
+    chat_id = BigIntegerField(
+        verbose_name="Чат айди в тг",
+        help_text="Введите чат айди пользователя в тг",
         blank=True,
         null = True,
     )

@@ -3,6 +3,7 @@ import errno
 import signal
 import logging
 from django.contrib.admin import ModelAdmin, TabularInline
+from django.contrib.messages import warning
 from .models import Entry, Order, Process, EntryStatusType
 from trader.admin import my_admin_site
 from trader.models import ExchangeAccount, Proxy
@@ -37,8 +38,27 @@ class OrderInline(TabularInline):
 
 class EntryAdmin(ModelAdmin):
     form = EntryForm
-    fields = ('profit', 'exit_course', 'entry_course', 'shoulder', 'exchange_one', 'exchange_two','wallet_pair', 'chat_id', 'is_active')
-    list_display = ('profit', 'shoulder','exit_course', 'entry_course','wallet_pair', 'status')
+    fields = (
+        'alias', 
+        'profit', 
+        'exit_course', 
+        'entry_course', 
+        'shoulder', 
+        'exchange_one', 
+        'exchange_two',
+        'wallet_pair', 
+        'receive_notifications', 
+        'is_active'
+    )
+    list_display = (
+        'alias',
+        'profit', 
+        'shoulder',
+        'exit_course', 
+        'entry_course',
+        'wallet_pair', 
+        'status'
+    )
     list_filter = ('status',)
     
     class Media:
@@ -79,7 +99,9 @@ class EntryAdmin(ModelAdmin):
             entry = Entry.objects.get(id = instance.id)
             old_is_active = entry.is_active
             new_is_active = form.cleaned_data['is_active']
-
+            old_receive_notifications = entry.chat_id
+            new_receive_notifications = form.cleaned_data.get('receive_notifications', False)
+            
             if old_is_active and not new_is_active: #  изменили статус на не актив
                 self._delete_process(request, form.instance) # тушим процесс
                 instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED
@@ -87,9 +109,21 @@ class EntryAdmin(ModelAdmin):
             elif new_is_active and not old_is_active: #  изменили статус на актив
                 self._create_process(str(form.instance.id)) # создаем процесс
                 instance.status = EntryStatusType.WAIT # поменяли на стутс WAIT
+            
+            if old_receive_notifications and not new_receive_notifications: #если были включены а щас нет
+                instance.chat_id = None
+            elif new_receive_notifications and not old_receive_notifications: #если были выключены а щас включены
+                instance.chat_id = request.user.chat_id
         else:
             if not new_is_active:
                 instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED
+
+            receive_notifications = form.cleaned_data.get('receive_notifications', False)
+            if receive_notifications:
+                if chat_id := request.user.chat_id:
+                    instance.chat_id = request.user.chat_id
+                else:
+                    warning(request, f"Добавьте чат айди в разделе 'Пользователи', чтобы получать уведомления в Telegram")
         return instance
 
     def save_related(self, request, form, formsets, change):
