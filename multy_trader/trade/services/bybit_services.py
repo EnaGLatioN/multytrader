@@ -3,6 +3,7 @@ import logging
 
 from trade.models import TradeType
 from multy_trader import settings
+from utils import get_wallet_pair
 
 
 logging.basicConfig(level=logging.INFO)
@@ -57,7 +58,7 @@ def bybit_buy_futures_contract(entry, order):
             logger.warning(f"Не удалось установить плечо: {e}")
 
         order_params = {
-            'symbol': entry.wallet_pair.slug,
+            'symbol': get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name),
             'type': 'market',
             'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
             'amount': entry.profit,

@@ -2,7 +2,7 @@ import time
 import logging
 from django.core.management.base import BaseCommand
 
-from utils import PriceChecker, PriceCheckerFactory
+from utils import PriceChecker, PriceCheckerFactory, get_wallet_pair
 from trade.models import Entry
 from exchange.models import Exchange
 from trade.services import gate_services, mexc_services, bybit_services, services
@@ -67,7 +67,7 @@ class Command(BaseCommand):
         for order in orders:
 
             exchange_type = order.exchange_account.exchange.name
-            wallet_pair = self.get_wallet_pair(entry.wallet_pair, exchange_type)
+            wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_type)
 
             if order.trade_type == "LONG":
                 long_order = order
@@ -114,10 +114,3 @@ class Command(BaseCommand):
         if exchange_name == 'bybit':
             bybit_services.bybit_buy_futures_contract(entry, short_order)
 
-    def get_wallet_pair(self, wallet_pair, exchange) -> str:
-        """Достает имя валютной пары привязанное к нужной бирже"""
-
-        all_wallet = wallet_pair.exchange_mappings.all()
-        for local_exchange_wallet in all_wallet:
-            if local_exchange_wallet.exchange == Exchange.objects.get(name=exchange):
-                return local_exchange_wallet.local_name

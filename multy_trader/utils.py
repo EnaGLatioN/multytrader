@@ -186,6 +186,14 @@ class PriceChecker:
             return None
 
 
+def get_wallet_pair(self, wallet_pair, exchange) -> str:
+    """Достает имя валютной пары привязанное к нужной бирже"""
+
+    all_wallet = wallet_pair.exchange_mappings.all()
+    for local_exchange_wallet in all_wallet:
+        if local_exchange_wallet.exchange == Exchange.objects.get(name=exchange):
+            return local_exchange_wallet.local_name
+
 class PriceCheckerFactory():
     @staticmethod
     def create_price_checker(wallet_pair, order):

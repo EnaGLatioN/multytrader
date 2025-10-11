@@ -5,6 +5,7 @@ from trade.models import TradeType
 from gate_api import ApiClient, Configuration, FuturesApi
 from gate_api.models import FuturesOrder
 from multy_trader.settings import GATE_HOST
+from utils import get_wallet_pair
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -20,7 +21,7 @@ def gate_buy_futures_contract(entry, order):
     :param leverage: плечо (по умолчанию 10x)
     """
 
-    symbol = entry.wallet_pair.slug  # Например, BTC_USDT для бессрочного контракта
+    symbol = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name),  # Например, BTC_USDT для бессрочного контракта
     amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit  # Количество BTC превращать из суммы в кол-во
     exchange_account = order.exchange_account
     proxy = order.proxy
