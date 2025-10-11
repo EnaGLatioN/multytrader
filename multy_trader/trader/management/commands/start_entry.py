@@ -21,6 +21,7 @@ class Command(BaseCommand):
         self.start_buy(options.get("entry_id", None))
 
     def futures_buy(self, price_checker_long, price_checker_short, long_order, short_order, entry, flag, status):
+
         logger.info('-------STATUS------')
         logger.info(status)
         while flag:
@@ -32,8 +33,7 @@ class Command(BaseCommand):
                 
                 logger.info('-------STATUS------')
                 logger.info(status)
-                logger.info('-------entry.entry_course------')
-                logger.info(entry.entry_course)
+                logger.info(getter_course)
 
                 if getter_course <= entry.entry_course:
                     continue
@@ -46,6 +46,8 @@ class Command(BaseCommand):
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
                 if entry.exit_course:
+                    logger.info('-------EXIT------')
+                    logger.info(getter_course)
                     if getter_course >= exit_course:
                         continue
                     self.long_buy(long_order, entry)
@@ -98,19 +100,23 @@ class Command(BaseCommand):
 
     def long_buy(self, long_order, entry):
         exchange_name = long_order.exchange_account.exchange.name
-        if exchange_name == 'gate':
+        logger.info("---exchange_name long---")
+        logger.info(exchange_name)
+        if exchange_name == 'GATE':
             gate_services.gate_buy_futures_contract(entry, long_order)
-        if exchange_name == 'mexc':
+        if exchange_name == 'MEXC':
             mexc_services.mexc_buy_futures_contract(entry, long_order)
-        if exchange_name == 'bybit':
+        if exchange_name == 'BYBIT':
             bybit_services.bybit_buy_futures_contract(entry, long_order)
 
     def short_buy(self, short_order, entry):
         exchange_name = short_order.exchange_account.exchange.name
-        if exchange_name == 'gate':
+        logger.info("---exchange_name short---")
+        logger.info(exchange_name)
+        if exchange_name == 'GATE':
             gate_services.gate_buy_futures_contract(entry, short_order)
-        if exchange_name == 'mexc':
+        if exchange_name == 'MEXC':
             mexc_services.mexc_buy_futures_contract(entry, short_order)
-        if exchange_name == 'bybit':
+        if exchange_name == 'BYBIT':
             bybit_services.bybit_buy_futures_contract(entry, short_order)
 
