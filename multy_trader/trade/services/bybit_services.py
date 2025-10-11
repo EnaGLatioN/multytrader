@@ -50,15 +50,16 @@ def bybit_buy_futures_contract(entry, order):
         # balance = exchange.fetch_balance()
         # usdt_balance = balance['total'].get('USDT', 0)
         # logger.info(f"💰 Баланс USDT: {usdt_balance}")
+        wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
         try:
-            exchange.set_leverage(entry.shoulder, entry.wallet_pair.slug)
+            exchange.set_leverage(entry.shoulder, wallet_pair)
             logger.info(f"⚖️ Плечо установлено: {entry.shoulder}x")
         except Exception as e:
             logger.warning(f"Не удалось установить плечо: {e}")
 
         order_params = {
-            'symbol': get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name),
+            'symbol': wallet_pair,
             'type': 'market',
             'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
             'amount': entry.profit,

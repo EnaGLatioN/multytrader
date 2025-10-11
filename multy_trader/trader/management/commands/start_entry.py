@@ -2,6 +2,7 @@ import time
 import logging
 from django.core.management.base import BaseCommand
 
+from concurrent.futures import ThreadPoolExecutor
 from utils import PriceChecker, PriceCheckerFactory, get_wallet_pair
 from trade.models import Entry
 from exchange.models import Exchange
@@ -37,9 +38,12 @@ class Command(BaseCommand):
 
                 if getter_course <= entry.entry_course:
                     continue
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    executor.submit(self.long_buy, long_order, entry)
+                    executor.submit(self.short_buy, short_order, entry)
 
-                self.long_buy(long_order, entry)
-                self.short_buy(short_order, entry)
+                # self.long_buy(long_order, entry)
+                # self.short_buy(short_order, entry)
 
                 self.update_status_entry(entry, "ACTIVE")
                 flag = False
@@ -50,8 +54,9 @@ class Command(BaseCommand):
                     logger.info(getter_course)
                     if getter_course >= exit_course:
                         continue
-                    self.long_buy(long_order, entry)
-                    self.short_buy(short_order, entry)
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        executor.submit(self.long_buy, long_order, entry)
+                        executor.submit(self.short_buy, short_order, entry)
 
                     self.update_status_entry(entry, "COMPLETED")
 

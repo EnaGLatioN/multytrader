@@ -14,16 +14,12 @@ logger = logging.getLogger(__name__)
 
 def gate_buy_futures_contract(entry, order):
     """
-    Функция для покупки фьючерсного контракта на GATE по маркету с установкой плеча
-
-    :param entry: объект entry с данными о торговой паре
-    :param order: объект order с данными об ордере
-    :param leverage: плечо (по умолчанию 10x)
+    Функция для покупки фьючерсного контракта на GATE по маркету
     """
 
-    amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit  # Количество BTC превращать из суммы в кол-во
+    amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit
     exchange_account = order.exchange_account
-    symbol = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)  # Например, BTC_USDT для бессрочного контракта
+    symbol = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
     proxy = order.proxy
 
@@ -37,30 +33,47 @@ def gate_buy_futures_contract(entry, order):
 
         exchange.options['defaultType'] = 'swap'
         exchange.options['defaultSettle'] = 'usdt'
-        logger.debug(f"Конфигурация прокси: {exchange.proxies}")
+
+        # Определяем, это закрытие позиции?
+        is_closing_position = amount < 0
 
         try:
-            leverage_response = exchange.set_leverage(
+            exchange.set_leverage(
                 leverage=entry.shoulder,
                 symbol=symbol
             )
-            logger.info(f"Плечо установлено: {entry.shoulder}x - {leverage_response}")
+            logger.info(f"Плечо установлено: {entry.shoulder}x")
         except ccxt.BaseError as leverage_error:
             logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
 
-        side = 'buy' if order.trade_type == TradeType.LONG else 'sell'
-        order_response = exchange.create_order(
-            symbol=symbol,
-            type='market',
-            side=side,
-            amount=abs(amount),
-            params={'timeInForce': 'IOC'}
-        )
-        logger.info(f"Ордер размещён с плечом {entry.shoulder}x: {order_response}")
+        # Определяем сторону ордера
+        if is_closing_position:
+            # Для закрытия: если amount отрицательный, значит нужно продать (sell)
+            side = 'sell'
+        else:
+            # Для открытия: обычная логика
+            side = 'buy' if order.trade_type == TradeType.LONG else 'sell'
+
+        # Параметры ордера
+        order_params = {
+            'symbol': symbol,
+            'type': 'market',
+            'side': side,
+            'amount': abs(amount),
+            'params': {
+                'timeInForce': 'IOC',
+                'reduceOnly': is_closing_position  # Важно: только уменьшение позиции
+            }
+        }
+
+        order_response = exchange.create_order(**order_params)
+
+        action = "Закрытие" if is_closing_position else "Открытие"
+        logger.info(f"{action} позиции с плечом {entry.shoulder}x: {order_response}")
         return order_response
 
     except ccxt.BaseError as e:
-        logger.error(f"Ошибка при размещении ордера с плечом {entry.shoulder}x: {e}")
+        logger.error(f"Ошибка при размещении ордера: {e}")
         return None
 
     #try:
