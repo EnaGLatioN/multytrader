@@ -11,15 +11,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def get_proxies(proxy):
-    # вынесите меня куда-нибудь в общий мусор
-    proxy_url = proxy.get_proxy_url()
-    return {
-        'http': proxy_url,
-        'https': proxy_url
-    }
-
-
 def gate_buy_futures_contract(entry, order):
     """
     Функция для покупки фьючерсного контракта на GATE по маркету с установкой плеча
@@ -28,19 +19,17 @@ def gate_buy_futures_contract(entry, order):
     :param order: объект order с данными об ордере
     :param leverage: плечо (по умолчанию 10x)
     """
+    
     symbol = entry.wallet_pair.slug  # Например, BTC_USDT для бессрочного контракта
     amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit  # Количество BTC превращать из суммы в кол-во
-
-    proxies = None
-    if proxy := order.proxy:
-        proxies = get_proxies(proxy)
+    proxy = order.proxy
 
     try:
         exchange = ccxt.gate({
             'apiKey': order.exchange_account.api_key,
             'secret': order.exchange_account.secret_key,
             'enableRateLimit': True,
-            'proxies': proxies
+            'proxies': proxy.get_proxies() if proxy else None
         })
 
         exchange.options['defaultType'] = 'swap'

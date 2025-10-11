@@ -86,6 +86,14 @@ class Proxy(Model):
             return f"{self.protocol}://{self.login}:{self.password}@{self.ip_address}:{self.port}"
         else:
             return f"{self.protocol}://{self.ip_address}:{self.port}"
+    
+    def get_proxies(self):
+        proxy_url = self.get_proxy_url()
+        return {
+            'http': proxy_url,
+            'https': proxy_url
+        }
+
 
 class ExchangeAccount(Model):
     """
