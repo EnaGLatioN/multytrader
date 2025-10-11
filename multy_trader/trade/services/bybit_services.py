@@ -25,19 +25,22 @@ def bybit_buy_futures_contract(entry, order):
     :param reduce_only: Только уменьшение позиции
     :return: Результат ордера
     """
+    exchange_account = order.exchange_account
+    proxy = order.proxy
 
     try:
         # Инициализация для mainnet
         exchange = ccxt.bybit({
-            'apiKey': order.exchange_account.api_key,
-            'secret': order.exchange_account.secret_key,
+            'apiKey': exchange_account.api_key,
+            'secret': exchange_account.secret_key,
             'sandbox': False,  # FALSE для mainnet!
+            'proxies': proxy.get_proxies() if proxy else None,
             'options': {
                 'defaultType': 'linear',
             },
             'enableRateLimit': True,
         })
-
+        logger.debug(f"Конфигурация прокси: {exchange.proxies}")
         logger.info("🔗 Подключаемся к Bybit mainnet...")
 
         # Загружаем рынки

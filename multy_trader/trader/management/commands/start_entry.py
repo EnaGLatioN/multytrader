@@ -2,7 +2,7 @@ import time
 import logging
 from django.core.management.base import BaseCommand
 
-from utils import PriceChecker, PriceCheckerFacktory
+from utils import PriceChecker, PriceCheckerFactory
 from trade.models import Entry
 from exchange.models import Exchange
 from trade.services import gate_services, mexc_services, bybit_services, services
@@ -70,10 +70,10 @@ class Command(BaseCommand):
 
             if order.trade_type == "LONG":
                 long_order = order
-                price_checker_long = PriceCheckerFacktory.create_price_checker(wallet_pair, order)
+                price_checker_long = PriceCheckerFactory.create_price_checker(wallet_pair, order)
             else:
                 short_order = order
-                price_checker_short = PriceCheckerFacktory.create_price_checker(wallet_pair, order)
+                price_checker_short = PriceCheckerFactory.create_price_checker(wallet_pair, order)
 
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, entry.status)
         

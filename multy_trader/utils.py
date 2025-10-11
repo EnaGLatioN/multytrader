@@ -186,7 +186,7 @@ class PriceChecker:
             return None
 
 
-class PriceCheckerFacktory():
+class PriceCheckerFactory():
     @staticmethod
     def create_price_checker(wallet_pair, order):
         exchange = order.exchange_account.exchange

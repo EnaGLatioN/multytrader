@@ -19,22 +19,23 @@ def gate_buy_futures_contract(entry, order):
     :param order: объект order с данными об ордере
     :param leverage: плечо (по умолчанию 10x)
     """
-    
+
     symbol = entry.wallet_pair.slug  # Например, BTC_USDT для бессрочного контракта
     amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit  # Количество BTC превращать из суммы в кол-во
+    exchange_account = order.exchange_account
     proxy = order.proxy
 
     try:
         exchange = ccxt.gate({
-            'apiKey': order.exchange_account.api_key,
-            'secret': order.exchange_account.secret_key,
+            'apiKey': exchange_account.api_key,
+            'secret': exchange_account.secret_key,
             'enableRateLimit': True,
             'proxies': proxy.get_proxies() if proxy else None
         })
 
         exchange.options['defaultType'] = 'swap'
         exchange.options['defaultSettle'] = 'usdt'
-        logger.info(f"Конфигурация прокси: {exchange.proxies}")
+        logger.debug(f"Конфигурация прокси: {exchange.proxies}")
 
         try:
             leverage_response = exchange.set_leverage(
