@@ -30,23 +30,19 @@ class Command(BaseCommand):
             bid = price_checker_long.get_bid_ask_prices()
             ask = price_checker_short.get_bid_ask_prices()
             getter_course = ((bid.get("best_bid") / ask.get("best_ask")) - 1) * 100
+
             if status == "WAIT":
-                
                 logger.info('-------STATUS------')
                 logger.info(status)
                 logger.info(getter_course)
-
                 if getter_course <= entry.entry_course:
                     continue
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     executor.submit(self.long_buy, long_order, entry)
                     executor.submit(self.short_buy, short_order, entry)
-
-                # self.long_buy(long_order, entry)
-                # self.short_buy(short_order, entry)
-
                 self.update_status_entry(entry, "ACTIVE")
                 flag = False
+
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
                 if entry.exit_course:
@@ -57,24 +53,17 @@ class Command(BaseCommand):
                     with ThreadPoolExecutor(max_workers=2) as executor:
                         executor.submit(self.long_buy, long_order, entry)
                         executor.submit(self.short_buy, short_order, entry)
-
                     self.update_status_entry(entry, "COMPLETED")
-
                     flag = False
 
 
     def start_buy(self, entry_id):
-
         entry = self.get_entry(entry_id)
-
-        orders = entry.order_entry.all()
         long_order = None
         short_order = None
         flag = True
-        for order in orders:
-
-            exchange_type = order.exchange_account.exchange.name
-            wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_type)
+        for order in entry.order_entry.all():
+            wallet_pair = get_wallet_pair(entry.wallet_pair, order.exchange_account.exchange.name)
 
             if order.trade_type == "LONG":
                 long_order = order
@@ -97,11 +86,12 @@ class Command(BaseCommand):
         except Entry.DoesNotExist:
             raise Entry.DoesNotExist
 
+
     def update_status_entry(self, entry, status):
         """Обновляет статус входа"""
-
         entry.status = status
         entry.save()
+
 
     def long_buy(self, long_order, entry):
         exchange_name = long_order.exchange_account.exchange.name
@@ -114,6 +104,7 @@ class Command(BaseCommand):
         if exchange_name == 'BYBIT':
             bybit_services.bybit_buy_futures_contract(entry, long_order)
 
+
     def short_buy(self, short_order, entry):
         exchange_name = short_order.exchange_account.exchange.name
         logger.info("---exchange_name short---")
@@ -124,4 +115,3 @@ class Command(BaseCommand):
             mexc_services.mexc_buy_futures_contract(entry, short_order)
         if exchange_name == 'BYBIT':
             bybit_services.bybit_buy_futures_contract(entry, short_order)
-

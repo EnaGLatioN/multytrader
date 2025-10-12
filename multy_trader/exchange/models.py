@@ -4,7 +4,6 @@ from django.db.models import (
     CharField,
     DateTimeField,
     UUIDField,
-    ManyToManyField,
     PositiveIntegerField,
     BooleanField,
     ForeignKey,

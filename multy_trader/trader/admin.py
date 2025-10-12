@@ -32,6 +32,7 @@ class CustomUserAdmin(UserAdmin):
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
+
 class CustomProxy(ModelAdmin):
     fields = ('ip_address', 'port', 'login', 'password', 'protocol', 'is_active')
     list_display = ('ip_address', 'port', 'is_active')
@@ -56,7 +57,8 @@ class CustomExchangeAccount(ModelAdmin):
         super().save_model(request,obj,form,change)
         if not change and not request.user.is_superuser:
             obj.user_exchange_account.add(request.user)
-        
+
+
 User = get_user_model()
 
 my_admin_site = TradeAdminSite(name='myadmin')

@@ -1,7 +1,6 @@
 from django.forms import ModelForm, ModelChoiceField, BooleanField
 from exchange.models import Exchange
 from .models import Entry
-from django.contrib.admin.widgets import FilteredSelectMultiple
 
 
 def get_exchanges():

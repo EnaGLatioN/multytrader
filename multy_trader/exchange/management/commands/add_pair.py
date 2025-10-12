@@ -22,13 +22,15 @@ class Command(BaseCommand):
         WalletPair.objects.all().delete()
 
     def add_pairs_gate(self):
-        configuration = gate_api.Configuration(
-            host="https://api.gateio.ws/api/v4"
+        api_instance = gate_api.SpotApi(
+            gate_api.ApiClient(
+                gate_api.Configuration(
+                    host="https://api.gateio.ws/api/v4"
+                )
+            )
         )
-        api_instance = gate_api.SpotApi(gate_api.ApiClient(configuration))
-        response = api_instance.list_currency_pairs()
         exchange, _ = Exchange.objects.get_or_create(name='GATE')
-        for resp in response:
+        for resp in api_instance.list_currency_pairs():
             PairExchangeMapping.objects.get_or_create(
                 local_name=resp.id,
                 exchange=exchange
@@ -36,10 +38,11 @@ class Command(BaseCommand):
         logger.info(f"Succes added pairs Gate")
 
     def add_pairs_bybit(self):
-        url = "https://api.bybit.com/v5/market/instruments-info"
-        response = requests.get(url, params = {"category": "linear"})
+        response = requests.get(
+            "https://api.bybit.com/v5/market/instruments-info",
+            params = {"category": "linear"}
+        )
         data = response.json()
-        
         response.raise_for_status()
         exchange_gate, _ = Exchange.objects.get_or_create(name='GATE')
         exchange, _ = Exchange.objects.get_or_create(name='BYBIT')
@@ -67,13 +70,10 @@ class Command(BaseCommand):
             return self.normalize_wallet_pair(formatted_pair, exchange_gate) 
 
     def normalize_wallet_pair(self, formatted_pair, exchange_gate):
-        char_remove = '_'
-        normalyze = formatted_pair.replace(char_remove, '').upper()
-
         try:
             return PairExchangeMapping.objects.annotate(
                 local_name_normalized=Replace('local_name', Value('_'), Value(''))
-            ).get(local_name_normalized__iexact=normalyze, exchange = exchange_gate)
+            ).get(local_name_normalized__iexact=formatted_pair.replace('_', '').upper(), exchange = exchange_gate)
         except PairExchangeMapping.DoesNotExist:
             return None
     

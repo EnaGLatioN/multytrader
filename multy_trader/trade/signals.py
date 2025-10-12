@@ -8,6 +8,6 @@ from trade.bot import notification
 def check_update_status(sender, instance, **kwargs):
     if instance.id is None:
         return
-    original_status = Entry.objects.get(id = instance.id)
+    original_status = Entry.objects.get(id=instance.id)
     if original_status.status != instance.status:
         notification(instance)

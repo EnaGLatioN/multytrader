@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config as cnf
+from django.template.defaultfilters import default
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -95,7 +96,7 @@ DATABASES = {
         'PASSWORD': cnf('PASSWORD_DB'),
         'HOST': cnf('HOST_DB'),
         'PORT': cnf('PORT_DB'),
-        'CONN_MAX_AGE': 60,
+        'CONN_MAX_AGE': cnf('PORT_DB', cast=int, default=30),
     }
 }
 

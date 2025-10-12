@@ -27,9 +27,7 @@ def bybit_buy_futures_contract(entry, order):
     """
     exchange_account = order.exchange_account
     proxy = order.proxy
-
     try:
-        # Инициализация для mainnet
         exchange = ccxt.bybit({
             'apiKey': exchange_account.api_key,
             'secret': exchange_account.secret_key,
@@ -42,13 +40,6 @@ def bybit_buy_futures_contract(entry, order):
         })
         logger.debug(f"Конфигурация прокси: {exchange.proxies}")
         logger.info("🔗 Подключаемся к Bybit mainnet...")
-
-        # Загружаем рынки
-        # markets = exchange.load_markets()
-
-        # balance = exchange.fetch_balance()
-        # usdt_balance = balance['total'].get('USDT', 0)
-        # logger.info(f"💰 Баланс USDT: {usdt_balance}")
         wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
         try:
@@ -67,13 +58,7 @@ def bybit_buy_futures_contract(entry, order):
             }
         }
 
-        # Для лимитных ордеров добавляем цену
-        # if order_type == 'limit' and price is not None:
-        #     order_params['price'] = price
-
         logger.info(f"🛒 Создаем ордер: {order_params}")
-
-        # Создаем ордер
         order_ex = exchange.create_order(**order_params)
 
         logger.info(f"✅ Ордер создан успешно! ID: {order_ex['id']}")
@@ -101,7 +86,7 @@ def bybit_buy_futures_contract(entry, order):
 
     except ccxt.InsufficientFunds as e:
         error_msg = f"❌ Недостаточно средств: {e}"
-        logger.error(error_msg)
+        logger.error(f"❌ Недостаточно средств: {e}")
         return {'success': False, 'error': error_msg}
 
     except Exception as e:
@@ -121,17 +106,3 @@ def get_balance_mainnet(api_key: str, api_secret: str):
 
     balance = exchange.fetch_balance()
     return balance
-
-
-
-    """ LOGS
-    INFO:__main__:🔗 Подключаемся к Bybit mainnet...
-INFO:__main__:✅ Рынки загружены, проверяем символ BTC/USDT:USDT
-INFO:__main__:💰 Баланс USDT: 5.641e-05
-INFO:__main__:⚖️ Плечо установлено: 10x
-INFO:__main__:🛒 Создаем ордер: {'symbol': 'BTC/USDT:USDT', 'type': 'market', 'side': 'buy', 'amount': 0.001, 'params': {'reduceOnly': False}}
-ERROR:__main__:❌ Недостаточно средств: bybit {"retCode":110007,"retMsg":"ab not enough for new order","result":{},"retExtInfo":{},"time":1759834563932}
-Результат: {'success': False, 'error': '❌ Недостаточно средств: bybit {"retCode":110007,"retMsg":"ab not enough for new order","result":{},"retExtInfo":{},"time":1759834563932}'}
-Баланс: {'USDC': 0.00257, 'ARB': 0.00012, 'ETH': 5.12e-06, 'USDT': 5.641e-05, 'TAIKO': 0.005}
-    
-    """

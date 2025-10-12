@@ -10,6 +10,7 @@ def notification(entry):
     if chat_id := entry.chat_id:
         send_telegram_message(get_message(entry),chat_id)
 
+
 def get_message(entry):
     """Формирует сообщение для отправки в чат тг"""
 
@@ -32,6 +33,7 @@ def get_message(entry):
         f"🕒 Создан: {entry.created_at.strftime('%Y-%m-%d %H:%M')}"
     )
     return message
+
 
 def send_telegram_message(message, chat_id):
     """Отправляет сообщение в чат тг"""

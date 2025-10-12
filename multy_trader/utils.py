@@ -1,7 +1,15 @@
 import os
+import logging
+from typing import Any
+
 import django
 import requests
 from exchange.models import Exchange
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
 django.setup()
@@ -31,13 +39,13 @@ class PriceChecker:
         if self.exchange_type is None:
             return None
         elif self.exchange_type == 'mexc':
-            params = {'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT"}
+            params = {'symbol': self.wallet_pair if self.wallet_pair else None}
         elif self.exchange_type == 'gate':
-            params = {'currency_pair': self.wallet_pair if self.wallet_pair else "BTC_USDT"}
+            params = {'currency_pair': self.wallet_pair if self.wallet_pair else None}
         elif self.exchange_type == 'bybit': #"/v5/market/tickers" api endpoint
             params = {
                 'category': 'spot',  # для спот торговли
-                'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT"
+                'symbol': self.wallet_pair if self.wallet_pair else None
             }
         else:
             params = {}
@@ -48,7 +56,7 @@ class PriceChecker:
             return response.json()
 
         except requests.exceptions.RequestException as e:
-            print(f"Ошибка запроса: {e}")
+            logger.error(f"Ошибка запроса: {e}")
             return None
 
     def get_order_book(self, limit=2):
@@ -56,39 +64,42 @@ class PriceChecker:
         Получить стакан цен (order book)
         limit: количество уровней в стакане
         """
+        endpoint = self.api_endpoint
         if self.exchange_type == 'mexc':
             # MEXC API для стакана
-            endpoint = "/api/v3/depth"
+            #endpoint = "/api/v3/depth"
             params = {
-                'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT",
+                'symbol': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
             }
         elif self.exchange_type == 'gate':
             # Gate.io API для стакана
-            endpoint = "/api/v4/spot/order_book"
+            #endpoint = "/api/v4/spot/order_book"
             params = {
-                'currency_pair': self.wallet_pair if self.wallet_pair else "BTC_USDT",
+                'currency_pair': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
             }
         elif self.exchange_type == 'bybit':
             # Bybit API для фьючерсов
-            endpoint = "/v5/market/orderbook"
+            #endpoint = "/v5/market/orderbook"
             params = {
                 'category': 'linear',  # 'linear' для USDT-фьючерсов, 'inverse' для инверсных
-                'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT",
+                'symbol': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
             }
         else:
             return None
 
-        url = f"{self.base_url}{endpoint}"
-
         try:
-            response = self.session.get(url, params=params, timeout=10)
+            response = self.session.get(
+                url=f"{self.base_url}{endpoint}",
+                params=params,
+                timeout=10
+            )
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Ошибка получения стакана: {e}")
+            logger.error(f"Ошибка получения стакана: {e}")
             return None
 
     def get_bid_ask_prices(self, limit=1):
@@ -177,22 +188,23 @@ class PriceChecker:
         bid_ask_data = self.get_bid_ask_prices(limit)
 
         if price_data and bid_ask_data:
-            return {**price_data, **bid_ask_data}
+            return {
+                **price_data,
+                **bid_ask_data
+            }
         elif price_data:
             return price_data
         elif bid_ask_data:
             return bid_ask_data
-        else:
-            return None
+        return None
 
 
-def get_wallet_pair(wallet_pair, exchange) -> str:
+def get_wallet_pair(wallet_pair, exchange) -> Any | None:
     """Достает имя валютной пары привязанное к нужной бирже"""
-
-    all_wallet = wallet_pair.exchange_mappings.all()
-    for local_exchange_wallet in all_wallet:
+    for local_exchange_wallet in wallet_pair.exchange_mappings.all():
         if local_exchange_wallet.exchange == Exchange.objects.get(name=exchange):
             return local_exchange_wallet.local_name
+    return None
 
 
 class PriceCheckerFactory():
