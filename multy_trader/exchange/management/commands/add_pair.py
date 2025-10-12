@@ -25,8 +25,7 @@ class Command(BaseCommand):
         configuration = gate_api.Configuration(
             host="https://api.gateio.ws/api/v4"
         )
-        api_client = gate_api.ApiClient(configuration)
-        api_instance = gate_api.SpotApi(api_client)
+        api_instance = gate_api.SpotApi(gate_api.ApiClient(configuration))
         response = api_instance.list_currency_pairs()
         exchange, _ = Exchange.objects.get_or_create(name='GATE')
         for resp in response:

@@ -1,5 +1,4 @@
-from django.contrib.admin import ModelAdmin, TabularInline
-from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.admin import ModelAdmin
 from .models import Exchange, WalletPair, PairExchangeMapping
 from trader.admin import my_admin_site
 
@@ -9,12 +8,14 @@ class ExchangeAdmin(ModelAdmin):
     search_fields = ('name',)
     search_help_text = 'Введите название биржи для поиска'
 
+
 class PairExchangeMappingAdmin(ModelAdmin):
     fields = ('local_name', 'wallet_pair', 'exchange')
     search_fields = ('local_name',)
     list_display = ('local_name', 'wallet_pair', 'exchange')
     list_filter = ('exchange',)
     search_help_text = 'Введите название валютной пары для поиска'
+
 
 class WalletPairAdmin(ModelAdmin):
     fields = ('slug', 'is_active',)
@@ -29,6 +30,7 @@ class WalletPairAdmin(ModelAdmin):
         return ", ".join(normalized_pairs) or "Нет пар"
 
     get_pairs.short_description = "Валютные пары бирж"
+
 
 my_admin_site.register(Exchange, ExchangeAdmin)
 my_admin_site.register(WalletPair, WalletPairAdmin)
