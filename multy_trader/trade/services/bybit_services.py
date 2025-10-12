@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-
 def bybit_buy_futures_contract(entry, order):
 
     """
@@ -75,18 +74,20 @@ def bybit_buy_futures_contract(entry, order):
         logger.info(f"🛒 Создаем ордер: {order_params}")
 
         # Создаем ордер
-        order = exchange.create_order(**order_params)
+        order_ex = exchange.create_order(**order_params)
 
-        logger.info(f"✅ Ордер создан успешно! ID: {order['id']}")
+        logger.info(f"✅ Ордер создан успешно! ID: {order_ex['id']}")
+        order.ex_order_id = order_ex['id'] if order_ex['id'] else None
+        order.save()
         return {
             'success': True,
-            'order_id': order['id'],
-            'symbol': order['symbol'],
-            'side': order['side'],
-            'type': order['type'],
-            'amount': order['amount'],
-            'price': order.get('price'),
-            'status': order['status']
+            'order_id': order_ex['id'],
+            'symbol': order_ex['symbol'],
+            'side': order_ex['side'],
+            'type': order_ex['type'],
+            'amount': order_ex['amount'],
+            'price': order_ex.get('price'),
+            'status': order_ex['status']
         }
 
     except ccxt.AuthenticationError as e:

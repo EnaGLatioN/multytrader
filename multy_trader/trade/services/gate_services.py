@@ -2,8 +2,6 @@ import ccxt
 import logging
 
 from trade.models import TradeType
-from gate_api import ApiClient, Configuration, FuturesApi
-from gate_api.models import FuturesOrder
 from multy_trader.settings import GATE_HOST
 from utils import get_wallet_pair
 
@@ -35,47 +33,61 @@ def gate_buy_futures_contract(entry, order):
         exchange.options['defaultSettle'] = 'usdt'
 
         # Определяем, это закрытие позиции?
-        is_closing_position = amount < 0
 
-        try:
-            exchange.set_leverage(
-                leverage=entry.shoulder,
-                symbol=symbol
-            )
-            logger.info(f"Плечо установлено: {entry.shoulder}x")
-        except ccxt.BaseError as leverage_error:
-            logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
+        if amount < 0:
+            close_position(order, exchange, symbol)
 
-        # Определяем сторону ордера
-        if is_closing_position:
-            # Для закрытия: если amount отрицательный, значит нужно продать (sell)
-            side = 'sell'
         else:
-            # Для открытия: обычная логика
+            # ОТКРЫТИЕ НОВОЙ ПОЗИЦИИ
+            try:
+                exchange.set_leverage(
+                    leverage=entry.shoulder,
+                    symbol=symbol
+                )
+                logger.info(f"Плечо установлено: {entry.shoulder}x")
+            except ccxt.BaseError as leverage_error:
+                logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
+
+            # Определяем сторону для открытия
             side = 'buy' if order.trade_type == TradeType.LONG else 'sell'
-
-        # Параметры ордера
-        order_params = {
-            'symbol': symbol,
-            'type': 'market',
-            'side': side,
-            'amount': abs(amount),
-            'params': {
-                'timeInForce': 'IOC',
-                'reduceOnly': is_closing_position  # Важно: только уменьшение позиции
+            order_params = {
+                'symbol': symbol,
+                'type': 'market',
+                'side': side,
+                'amount': abs(amount),
+                'params': {
+                    'timeInForce': 'IOC',
+                }
             }
-        }
 
-        order_response = exchange.create_order(**order_params)
-
-        action = "Закрытие" if is_closing_position else "Открытие"
-        logger.info(f"{action} позиции с плечом {entry.shoulder}x: {order_response}")
-        return order_response
+            order_response = exchange.create_order(**order_params)
+            logger.info(f"✅ Новая позиция открыта с плечом {entry.shoulder}x: {order_response}")
+            order.ex_order_id = order_response.get('id', None)
+            order.save()
+            return order_response
 
     except ccxt.BaseError as e:
         logger.error(f"Ошибка при размещении ордера: {e}")
         return None
 
+
+
+def close_position(order, exchange, symbol):
+    try:
+        # Получаем ID ордера из объекта order (предполагается что он там есть)
+        order_id = order.ex_order_id  # или order.id в зависимости от модели
+
+        # Закрываем ордер по ID
+        close_response = exchange.cancel_order(order_id, symbol)
+        logger.info(f"✅ Ордер закрыт по ID {order_id}: {close_response}")
+        return close_response
+
+    except ccxt.OrderNotFound as e:
+        logger.error(f"Ордер с ID {order_id} не найден: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Ошибка при закрытии ордера {order_id}: {e}")
+        return None
     #try:
     #    config = Configuration(
     #        host=GATE_HOST,
