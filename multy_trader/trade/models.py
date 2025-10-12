@@ -135,6 +135,14 @@ class Order(Model):
         related_name="order_proxy",
         verbose_name="Прокси",
     )
+    ex_order_id = CharField(
+        max_length = 255,
+        help_text="Айди ордера с биржи.",
+        verbose_name="Айди ордера с биржи.",
+        blank=True,
+        null=True,
+        default=None
+    )
     class Meta:
         db_table = "order"
         verbose_name = "Заказ"
