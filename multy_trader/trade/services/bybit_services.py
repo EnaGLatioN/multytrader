@@ -43,12 +43,6 @@ def bybit_buy_futures_contract(entry, order):
         logger.debug(f"Конфигурация прокси: {exchange.proxies}")
         logger.info("🔗 Подключаемся к Bybit mainnet...")
 
-        # Загружаем рынки
-        # markets = exchange.load_markets()
-
-        # balance = exchange.fetch_balance()
-        # usdt_balance = balance['total'].get('USDT', 0)
-        # logger.info(f"💰 Баланс USDT: {usdt_balance}")
         wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
         try:
@@ -66,29 +60,15 @@ def bybit_buy_futures_contract(entry, order):
                 'reduceOnly': False,
             }
         }
-
-        # Для лимитных ордеров добавляем цену
-        # if order_type == 'limit' and price is not None:
-        #     order_params['price'] = price
-
         logger.info(f"🛒 Создаем ордер: {order_params}")
 
-        # Создаем ордер
         order_ex = exchange.create_order(**order_params)
 
         logger.info(f"✅ Ордер создан успешно! ID: {order_ex['id']}")
         order.ex_order_id = order_ex['id'] if order_ex['id'] else None
         order.save()
-        return {
-            'success': True,
-            'order_id': order_ex['id'],
-            'symbol': order_ex['symbol'],
-            'side': order_ex['side'],
-            'type': order_ex['type'],
-            'amount': order_ex['amount'],
-            'price': order_ex.get('price'),
-            'status': order_ex['status']
-        }
+        return order_ex
+
 
     except ccxt.AuthenticationError as e:
         error_msg = "❌ Ошибка аутентификации. Проверьте:"

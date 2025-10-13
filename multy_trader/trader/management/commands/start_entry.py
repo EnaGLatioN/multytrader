@@ -38,6 +38,7 @@ class Command(BaseCommand):
 
                 if getter_course <= entry.entry_course:
                     continue
+
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     executor.submit(self.long_buy, long_order, entry)
                     executor.submit(self.short_buy, short_order, entry)
@@ -57,11 +58,11 @@ class Command(BaseCommand):
                     with ThreadPoolExecutor(max_workers=2) as executor:
                         executor.submit(self.long_buy, long_order, entry)
                         executor.submit(self.short_buy, short_order, entry)
+                    # self.long_buy(long_order, entry)
+                    # self.short_buy(short_order, entry)
 
                     self.update_status_entry(entry, "COMPLETED")
-
                     flag = False
-
 
     def start_buy(self, entry_id):
 
@@ -87,7 +88,8 @@ class Command(BaseCommand):
         
         long_order.trade_type = "SHORT"
         short_order.trade_type = "LONG"
-
+        long_order.save()
+        short_order.save()
         self.futures_buy(price_checker_long, price_checker_short, long_order, short_order, entry, flag, entry.status)
 
 

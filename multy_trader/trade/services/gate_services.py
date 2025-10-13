@@ -32,13 +32,7 @@ def gate_buy_futures_contract(entry, order):
         exchange.options['defaultType'] = 'swap'
         exchange.options['defaultSettle'] = 'usdt'
 
-        # Определяем, это закрытие позиции?
-
-        if amount < 0:
-            close_position(order, exchange, symbol)
-
-        else:
-            # ОТКРЫТИЕ НОВОЙ ПОЗИЦИИ
+        if not close_position(order, exchange, symbol):
             try:
                 exchange.set_leverage(
                     leverage=entry.shoulder,
@@ -47,14 +41,11 @@ def gate_buy_futures_contract(entry, order):
                 logger.info(f"Плечо установлено: {entry.shoulder}x")
             except ccxt.BaseError as leverage_error:
                 logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
-
-            # Определяем сторону для открытия
-            side = 'buy' if order.trade_type == TradeType.LONG else 'sell'
             order_params = {
                 'symbol': symbol,
                 'type': 'market',
-                'side': side,
-                'amount': abs(amount),
+                'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
+                'amount': entry.profit,
                 'params': {
                     'timeInForce': 'IOC',
                 }
@@ -71,52 +62,49 @@ def gate_buy_futures_contract(entry, order):
         return None
 
 
-
 def close_position(order, exchange, symbol):
     try:
-        # Получаем ID ордера из объекта order (предполагается что он там есть)
-        order_id = order.ex_order_id  # или order.id в зависимости от модели
+        logger.info(f"🔍 Закрываем позицию для символа {symbol}")
 
-        # Закрываем ордер по ID
-        close_response = exchange.cancel_order(order_id, symbol)
-        logger.info(f"✅ Ордер закрыт по ID {order_id}: {close_response}")
-        return close_response
+        # 🔥 ПОЛУЧАЕМ ТЕКУЩУЮ ПОЗИЦИЮ
+        positions = exchange.fetch_positions([symbol])
 
-    except ccxt.OrderNotFound as e:
-        logger.error(f"Ордер с ID {order_id} не найден: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Ошибка при закрытии ордера {order_id}: {e}")
-        return None
-    #try:
-    #    config = Configuration(
-    #        host=GATE_HOST,
-    #        key=order.exchange_account.api_key,
-    #        secret=order.exchange_account.secret_key,
-    #        proxies=proxies
-    #    )
-    #    futures_api = FuturesApi(ApiClient(config))
-    #    print(futures_api)
-    #    settle = 'usdt'
-    #    # 1. Сначала устанавливаем плечо
-    #    try:
-    #        leverage_response = futures_api.update_position_leverage(settle, contract, entry.shoulder)
-    #        logger.info(f"Плечо установлено: {entry.shoulder}x - {leverage_response}")
-    #    except Exception as leverage_error:
-    #        logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
-    #        # Продолжаем выполнение, так как возможно плечо уже установлено
-    #    # 2. Размещаем ордер
-    #    futures_order = FuturesOrder(
-    #        contract=contract,
-    #        size=amount if order.trade_type == TradeType.LONG else -amount,
-    #        price="0",  # Для маркет-ордера
-    #        tif="ioc"  # Immediate or Cancel - обязательно для маркет-ордера
-    #    )
-    #
-    #    response = futures_api.create_futures_order(settle, futures_order)
-    #    logger.info(f"Ордер размещен с плечом {entry.shoulder}x: {response}")
-    #    return response
-    #
-    #except Exception as e:
-    #    logger.error(f"Ошибка при размещении ордера с плечом {entry.shoulder}x - gate_buy_futures_contract: {e}")
-    #    return None
+        current_position = None
+        for position in positions:
+            logger.info(f"ТЕКУЩИЕ ПОЗИЦИИ {position}")
+            if position.get("info").get('contract') == symbol and position['contracts'] > 0:
+                current_position = position
+                break
+
+        if not current_position:
+            logger.info(f"🔍 Активная позиция не найдена для {symbol}")
+            return False  # Позиции нет, считаем что закрыта
+
+        logger.info(f"🔍 Найдена позиция: {current_position}")
+
+        # 🔥 ОПРЕДЕЛЯЕМ СТОРОНУ ДЛЯ ЗАКРЫТИЯ
+        # Если позиция LONG - закрываем SELL, и наоборот
+        side = 'sell' if current_position['side'] == 'long' else 'buy'
+        amount = abs(current_position['contracts'])
+
+        logger.info(f"🔄 Закрываем позицию: {side} {amount} контрактов")
+
+        # 🔥 РАЗМЕЩАЕМ ПРОТИВОПОЛОЖНЫЙ ОРДЕР
+        close_order_params = {
+            'symbol': symbol,
+            'type': 'market',
+            'side': side,
+            'amount': amount,
+            'params': {
+                'reduceOnly': True,  # ⚠️ ВАЖНО: только уменьшение позиции
+                'timeInForce': 'IOC',
+            }
+        }
+
+        close_response = exchange.create_order(**close_order_params)
+        logger.info(f"✅ Позиция закрыта: {close_response}")
+        return True
+
+    except ccxt.BaseError as e:
+        logger.error(f"Ошибка при закрытии позиции: {e}")
+        return False
