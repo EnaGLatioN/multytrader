@@ -99,7 +99,7 @@ class Entry(Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f'{self.id}'
+        return f'{self.alias}' if self.alias else f'{self.id}'
 
 
 class Order(Model):
