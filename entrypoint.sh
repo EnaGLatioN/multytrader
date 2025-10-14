@@ -4,9 +4,13 @@ set -e
 # Вывод переданных переменных окружения
 echo "Переданные переменные окружения:"
 env | grep -E '^[A-Z0-9_]+' || echo "Нет переменных."
+ENV_IP="${ENV_IP:-0.0.0.0}"
+ENV_PORT="${ENV_PORT:-80}"
+echo "Используемый IP: $ENV_IP"
+echo "Используемый порт:$ENV_PORT"
 
 COMMANDS=(
-    "poetry run python  multy_trader/manage.py runserver 0.0.0.0:80"
+    "poetry run python multy_trader/manage.py runserver $ENV_IP:$ENV_PORT"
 )
 
 # Функция обработки завершения контейнера
