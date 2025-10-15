@@ -1,5 +1,6 @@
 import ccxt
 import logging
+from trade.bot import send_telegram_message
 
 from trade.models import TradeType
 from multy_trader.settings import GATE_HOST
@@ -15,7 +16,7 @@ def gate_buy_futures_contract(entry, order):
     Функция для покупки фьючерсного контракта на GATE по маркету
     """
 
-    amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit
+    # amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit
     exchange_account = order.exchange_account
     symbol = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
@@ -32,7 +33,7 @@ def gate_buy_futures_contract(entry, order):
         exchange.options['defaultType'] = 'swap'
         exchange.options['defaultSettle'] = 'usdt'
 
-        if not close_position(order, exchange, symbol):
+        if not close_position(exchange, symbol, entry):
             try:
                 exchange.set_leverage(
                     leverage=entry.shoulder,
@@ -59,10 +60,10 @@ def gate_buy_futures_contract(entry, order):
 
     except ccxt.BaseError as e:
         logger.error(f"Ошибка при размещении ордера: {e}")
-        return None
+        send_telegram_message(f"Ошибка при размещении ордера: {e}", entry.chat_id)
 
 
-def close_position(order, exchange, symbol):
+def close_position(exchange, symbol, entry):
     try:
         logger.info(f"🔍 Закрываем позицию для символа {symbol}")
 
@@ -71,7 +72,7 @@ def close_position(order, exchange, symbol):
 
         current_position = None
         for position in positions:
-            logger.info(f"ТЕКУЩИЕ ПОЗИЦИИ {position}")
+            # logger.info(f"ТЕКУЩИЕ ПОЗИЦИИ {position}")
             if position.get("info").get('contract') == symbol and position['contracts'] > 0:
                 current_position = position
                 break
@@ -107,4 +108,4 @@ def close_position(order, exchange, symbol):
 
     except ccxt.BaseError as e:
         logger.error(f"Ошибка при закрытии позиции: {e}")
-        return False
+        send_telegram_message(f"Ошибка при размещении ордера: {e}", entry.chat_id)

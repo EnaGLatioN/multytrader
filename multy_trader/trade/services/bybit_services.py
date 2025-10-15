@@ -1,6 +1,6 @@
 import ccxt
 import logging
-
+from trade.bot import send_telegram_message
 from trade.models import TradeType
 from multy_trader import settings
 from utils import get_wallet_pair
@@ -41,7 +41,7 @@ def bybit_buy_futures_contract(entry, order):
             'enableRateLimit': True,
         })
         logger.debug(f"Конфигурация прокси: {exchange.proxies}")
-        logger.info("🔗 Подключаемся к Bybit mainnet...")
+        # logger.info("🔗 Подключаемся к Bybit mainnet...")
 
         wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
@@ -60,7 +60,7 @@ def bybit_buy_futures_contract(entry, order):
                 'reduceOnly': False,
             }
         }
-        logger.info(f"🛒 Создаем ордер: {order_params}")
+        # logger.info(f"🛒 Создаем ордер: {order_params}")
 
         order_ex = exchange.create_order(**order_params)
 
@@ -77,17 +77,17 @@ def bybit_buy_futures_contract(entry, order):
         error_msg += "\n3. Нет ограничений по IP"
         error_msg += f"\nДетали: {e}"
         logger.error(error_msg)
-        return {'success': False, 'error': error_msg}
+        send_telegram_message(error_msg, entry.chat_id)
 
     except ccxt.InsufficientFunds as e:
         error_msg = f"❌ Недостаточно средств: {e}"
         logger.error(error_msg)
-        return {'success': False, 'error': error_msg}
+        send_telegram_message(error_msg, entry.chat_id)
 
     except Exception as e:
         error_msg = f"❌ Ошибка: {e}"
         logger.error(error_msg)
-        return {'success': False, 'error': error_msg}
+        send_telegram_message(error_msg, entry.chat_id)
 
 
 
@@ -101,7 +101,6 @@ def get_balance_mainnet(api_key: str, api_secret: str):
 
     balance = exchange.fetch_balance()
     return balance
-
 
 
     """ LOGS
