@@ -61,7 +61,7 @@ def gate_buy_futures_contract(entry, order):
     except ccxt.BaseError as e:
         logger.error(f"Ошибка при размещении ордера: {e}")
         send_telegram_message(f"Ошибка при размещении ордера: {e}", entry.chat_id)
-
+        return None
 
 def close_position(exchange, symbol, entry):
     try:
@@ -109,3 +109,4 @@ def close_position(exchange, symbol, entry):
     except ccxt.BaseError as e:
         logger.error(f"Ошибка при закрытии позиции: {e}")
         send_telegram_message(f"Ошибка при размещении ордера: {e}", entry.chat_id)
+        return False

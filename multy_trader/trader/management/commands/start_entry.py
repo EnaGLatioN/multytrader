@@ -32,7 +32,7 @@ class Command(BaseCommand):
             logger.info("BBBBBBIIIIIIIIIDDDD")
             logger.info(bid)
             logger.info("AAAAAASSSSSKKKK")
-            logger.info(bid)
+            logger.info(ask)
             getter_course = ((bid.get("best_bid") / ask.get("best_ask")) - 1) * 100
             if status == "WAIT":
                 

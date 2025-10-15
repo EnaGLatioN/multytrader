@@ -78,17 +78,18 @@ def bybit_buy_futures_contract(entry, order):
         error_msg += f"\nДетали: {e}"
         logger.error(error_msg)
         send_telegram_message(error_msg, entry.chat_id)
+        return {'success': False, 'error': error_msg}
 
     except ccxt.InsufficientFunds as e:
         error_msg = f"❌ Недостаточно средств: {e}"
         logger.error(error_msg)
         send_telegram_message(error_msg, entry.chat_id)
-
+        return {'success': False, 'error': error_msg}
     except Exception as e:
         error_msg = f"❌ Ошибка: {e}"
         logger.error(error_msg)
         send_telegram_message(error_msg, entry.chat_id)
-
+        return {'success': False, 'error': error_msg}
 
 
 def get_balance_mainnet(api_key: str, api_secret: str):
