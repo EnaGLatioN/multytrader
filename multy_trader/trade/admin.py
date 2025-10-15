@@ -165,7 +165,7 @@ class EntryAdmin(ModelAdmin):
 
         with open("process.log", "a") as log_file:
             active_process = subprocess.Popen(
-                ["poetry", "run", "python", "-m", "manage", "start_entry", # poetry run python -m manage start_entry --entry_id
+                ["poetry", "run", "python", "manage.py", "start_entry", # poetry run python -m manage start_entry --entry_id
                 "--entry_id", entry_id,
                 ],
                 stdout=log_file,
