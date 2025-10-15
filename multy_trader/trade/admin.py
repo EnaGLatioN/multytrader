@@ -121,7 +121,7 @@ class EntryAdmin(ModelAdmin):
             receive_notifications = form.cleaned_data.get('receive_notifications', False)
             if receive_notifications:
                 if chat_id := request.user.chat_id:
-                    instance.chat_id = request.user.chat_id
+                    instance.chat_id = chat_id
                 else:
                     warning(request, f"Добавьте чат айди в разделе 'Пользователи', чтобы получать уведомления в Telegram")
         return instance
