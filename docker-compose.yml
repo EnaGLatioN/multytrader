@@ -19,7 +19,7 @@ services:
    networks:
      - multitrader
    ports:
-     - "55432:5432"
+     - "5432:5432"
    volumes:
      - /mnt/multitrader-db:/var/lib/postgresql/data
      - /tmp/dump:/tmp/dump
