@@ -2,6 +2,8 @@ import os
 import errno
 import signal
 import logging
+from email.policy import default
+
 from django.contrib.admin import ModelAdmin, TabularInline
 from django.contrib.messages import warning
 from .models import Entry, Order, Process, EntryStatusType
@@ -11,6 +13,8 @@ from exchange.models import WalletPair, Exchange
 import subprocess
 from .forms import EntryForm
 from trade.bot import notification
+from decouple import config
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
@@ -165,7 +169,7 @@ class EntryAdmin(ModelAdmin):
 
         with open("process.log", "a") as log_file:
             active_process = subprocess.Popen(
-                ["poetry", "run", "python", "manage.py", "start_entry", # poetry run python -m manage start_entry --entry_id
+                ["poetry", "run", "python", config("MANAGE_DIR", cast=str, default="manage.py"), "start_entry", # poetry run python -m manage start_entry --entry_id
                 "--entry_id", entry_id,
                 ],
                 stdout=log_file,
