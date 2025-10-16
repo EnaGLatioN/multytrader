@@ -10,7 +10,7 @@ RUN pip install poetry==2.1.1
 ENV PATH="/root/.local/bin:$PATH"
 
 RUN poetry install
-
+WORKDIR /application/multy_trader
 RUN chmod +x ./entrypoint.sh
 
 CMD [ "./entrypoint.sh" ]
