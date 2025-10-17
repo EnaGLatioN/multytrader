@@ -60,14 +60,14 @@ class PriceChecker:
             # MEXC API для стакана
             endpoint = "/api/v3/depth"
             params = {
-                'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT",
+                'symbol': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
             }
         elif self.exchange_type == 'gate':
             # Gate.io API для стакана
             endpoint = "/api/v4/spot/order_book"
             params = {
-                'currency_pair': self.wallet_pair if self.wallet_pair else "BTC_USDT",
+                'currency_pair': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
             }
         elif self.exchange_type == 'bybit':
@@ -75,7 +75,7 @@ class PriceChecker:
             endpoint = "/v5/market/orderbook"
             params = {
                 'category': 'linear',  # 'linear' для USDT-фьючерсов, 'inverse' для инверсных
-                'symbol': self.wallet_pair if self.wallet_pair else "BTCUSDT",
+                'symbol': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
             }
         else:
