@@ -25,12 +25,12 @@ class Command(BaseCommand):
         configuration = gate_api.Configuration(
             host="https://api.gateio.ws/api/v4"
         )
-        api_instance = gate_api.SpotApi(gate_api.ApiClient(configuration))
-        response = api_instance.list_currency_pairs()
+        api_instance = gate_api.FuturesApi(gate_api.ApiClient(configuration))
+        response = api_instance.list_futures_contracts(settle='usdt')
         exchange, _ = Exchange.objects.get_or_create(name='GATE')
         for resp in response:
             PairExchangeMapping.objects.get_or_create(
-                local_name=resp.id,
+                local_name=resp.name,
                 exchange=exchange
             )
         logger.info(f"Succes added pairs Gate")

@@ -64,9 +64,9 @@ class PriceChecker:
             }
         elif self.exchange_type == 'gate':
             # Gate.io API для стакана
-            endpoint = "/api/v4/futures/order_book"
+            endpoint = "/api/v4/futures/usdt/order_book"
             params = {
-                'currency_pair': self.wallet_pair if self.wallet_pair else None,
+                'contract': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
             }
         elif self.exchange_type == 'bybit':
@@ -106,8 +106,8 @@ class PriceChecker:
         if self.exchange_type == 'gate':
             bids = order_book.get('bids', [])
             asks = order_book.get('asks', [])
-            best_bid = float(bids[0][0]) if bids else None  # Первый элемент в bids - лучшая цена покупки
-            best_ask = float(asks[0][0]) if asks else None  # Первый элемент в asks - лучшая цена продажи
+            best_bid = float(bids[0]['p']) if bids else None  # Первый элемент в bids - лучшая цена покупки
+            best_ask = float(asks[0]['p']) if asks else None  # Первый элемент в asks - лучшая цена продажи
 
         if self.exchange_type == 'bybit':
             bids = order_book.get("result").get('b', [])  # Bybit использует 'b' для bids

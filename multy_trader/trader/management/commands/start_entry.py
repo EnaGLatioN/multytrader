@@ -30,9 +30,9 @@ class Command(BaseCommand):
             time.sleep(0.2)
             bid = price_checker_long.get_bid_ask_prices()
             ask = price_checker_short.get_bid_ask_prices()
-            logger.info("BBBBBBIIIIIIIIIDDDD")
+            logger.info("---------BID-----------")
             logger.info(bid)
-            logger.info("AAAAAASSSSSKKKK")
+            logger.info("----------ASK---------")
             logger.info(ask)
             getter_course = ((bid.get("best_bid") / ask.get("best_ask")) - 1) * 100
             if status == "WAIT":
@@ -41,8 +41,8 @@ class Command(BaseCommand):
                 logger.info(status)
                 logger.info(getter_course)
 
-                #if getter_course <= entry.entry_course:
-                #    continue
+                if getter_course <= entry.entry_course:
+                    continue
 
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     future_open_long = executor.submit(self.long_buy, long_order, entry)
@@ -193,7 +193,7 @@ class Command(BaseCommand):
     def close_order(self, order, entry):
         """Закрывает ордера."""
 
-        order.trade_type = "SHORT" if order_one_obj.trade_type == "LONG" else "LONG"
+        order.trade_type = "SHORT" if order.trade_type == "LONG" else "LONG"
         order.save()
         close_result = self.short_buy(order, entry)
         if not close_result.get('success'):
