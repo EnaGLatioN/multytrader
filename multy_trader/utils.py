@@ -116,15 +116,6 @@ class PriceChecker:
             best_bid = float(bids[0][0]) if bids else None
             best_ask = float(asks[0][0]) if asks else None
 
-        if self.trade_type == "LONG":
-            return {
-                'best_bid': best_bid
-            }
-
-        elif self.trade_type == "SHORT":
-            return {
-                'best_ask': best_ask
-            }
         return {
             'best_bid': best_bid,  # Лучшая цена покупки (максимальная цена, по которой хотят купить)
             'best_ask': best_ask,  # Лучшая цена продажи (минимальная цена, по которой хотят продать)
