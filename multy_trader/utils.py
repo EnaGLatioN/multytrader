@@ -14,7 +14,6 @@ class PriceChecker:
         self.api_endpoint = kwargs.get('api_endpoint')
         self.exchange_type = kwargs.get('exchange_type')  # 'mexc' или 'gate'
         self.trade_type = kwargs.get('trade_type') 
-        #self.order = kwargs.get('order')
         self.session = requests.Session()
         self.session.headers.update({
             'Accept': 'application/json',

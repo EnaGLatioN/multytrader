@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 class OrderAdmin(ModelAdmin):
     fields = ('trade_type', 'entry', 'exchange_account', 'proxy')
-    list_display = ('trade_type', 'entry', 'exchange_account', 'proxy')
+    list_display = ('entry', 'trade_type', 'exchange_account', 'proxy', 'status')
 
 
 class OrderInline(TabularInline):

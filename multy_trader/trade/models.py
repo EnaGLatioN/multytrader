@@ -16,11 +16,19 @@ from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair
 
 
+class OrderStatusType(TextChoices):
+    WAIT = "WAIT", "В Ожидании"
+    OPEN = "OPEN", "Открыт"
+    CLOSED = "CLOSED", "Закрыт"
+    FAILED = "FAILED", "Завершен с ошибкой"
+
+
 class EntryStatusType(TextChoices):
     WAIT = "WAIT", "В Ожидании"
     ACTIVE = "ACTIVE", "Активно"
     COMPLETED = "COMPLETED", "Завершено"
     STOPPED = "STOPPED", "Остановлен"
+    FAILED = "FAILED", "Завершен с ошибкой"
 
 
 class TradeType(TextChoices):
@@ -143,6 +151,14 @@ class Order(Model):
         null=True,
         default=None
     )
+    status = CharField(
+        choices=OrderStatusType.choices,
+        default=OrderStatusType.WAIT.value,
+        max_length = 50,
+        help_text="Статус",
+        verbose_name="Статус",
+    )
+
     class Meta:
         db_table = "order"
         verbose_name = "Заказ"

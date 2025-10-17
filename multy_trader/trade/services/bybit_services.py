@@ -1,6 +1,5 @@
 import ccxt
 import logging
-from trade.bot import send_telegram_message
 from trade.models import TradeType
 from multy_trader import settings
 from utils import get_wallet_pair
@@ -63,11 +62,11 @@ def bybit_buy_futures_contract(entry, order):
         # logger.info(f"🛒 Создаем ордер: {order_params}")
 
         order_ex = exchange.create_order(**order_params)
-
-        logger.info(f"✅ Ордер создан успешно! ID: {order_ex['id']}")
+        msg = f"✅ Ордер создан успешно! ID: {order_ex['id']}"
+        logger.info(msg)
         order.ex_order_id = order_ex['id'] if order_ex['id'] else None
         order.save()
-        return order_ex
+        return {'success': True, 'result': msg, 'order': order}
 
 
     except ccxt.AuthenticationError as e:
@@ -77,19 +76,17 @@ def bybit_buy_futures_contract(entry, order):
         error_msg += "\n3. Нет ограничений по IP"
         error_msg += f"\nДетали: {e}"
         logger.error(error_msg)
-        send_telegram_message(error_msg, entry.chat_id)
-        return {'success': False, 'error': error_msg}
+        return {'success': False, 'error': error_msg, 'order': order}
 
     except ccxt.InsufficientFunds as e:
         error_msg = f"❌ Недостаточно средств: {e}"
         logger.error(error_msg)
-        send_telegram_message(error_msg, entry.chat_id)
-        return {'success': False, 'error': error_msg}
+        return {'success': False, 'error': error_msg, 'order': order}
+
     except Exception as e:
         error_msg = f"❌ Ошибка: {e}"
         logger.error(error_msg)
-        send_telegram_message(error_msg, entry.chat_id)
-        return {'success': False, 'error': error_msg}
+        return {'success': False, 'error': error_msg, 'order': order}
 
 
 def get_balance_mainnet(api_key: str, api_secret: str):

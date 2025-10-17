@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        self.clear()
+        #self.clear()
         self.add_pairs_gate()
         self.add_pairs_bybit()
 

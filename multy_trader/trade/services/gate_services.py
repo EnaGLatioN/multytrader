@@ -1,6 +1,5 @@
 import ccxt
 import logging
-from trade.bot import send_telegram_message
 
 from trade.models import TradeType
 from multy_trader.settings import GATE_HOST
@@ -33,7 +32,8 @@ def gate_buy_futures_contract(entry, order):
         exchange.options['defaultType'] = 'swap'
         exchange.options['defaultSettle'] = 'usdt'
 
-        if not close_position(exchange, symbol, entry):
+        status_close, msg = close_position(exchange, symbol, entry)
+        if not status_close:
             try:
                 exchange.set_leverage(
                     leverage=entry.shoulder,
@@ -53,15 +53,39 @@ def gate_buy_futures_contract(entry, order):
             }
 
             order_response = exchange.create_order(**order_params)
-            logger.info(f"✅ Новая позиция открыта с плечом {entry.shoulder}x: {order_response}")
+            msg = f"✅ Новая позиция открыта с плечом {entry.shoulder}x: {order_response}"
+            logger.info(msg)
             order.ex_order_id = order_response.get('id', None)
             order.save()
-            return order_response
+
+        return {'success': True, 'result': msg, 'order': order}
+
+    except ccxt.AuthenticationError as e:
+        error_msg = "❌ Ошибка аутентификации. Проверьте:"
+        error_msg += "\n1. Ключи созданы на https://www.gate.com"
+        error_msg += "\n2. Включены права на Trade"
+        error_msg += "\n3. Нет ограничений по IP"
+        error_msg += f"\nДетали: {e}"
+        logger.error(error_msg)
+        return {'success': False, 'error': error_msg, 'order': order}
+
+    except ccxt.InsufficientFunds as e:
+        error_msg = f"❌ Недостаточно средств: {e}"
+        logger.error(error_msg)
+        return {'success': False, 'error': error_msg, 'order': order}
 
     except ccxt.BaseError as e:
-        logger.error(f"Ошибка при размещении ордера: {e}")
-        send_telegram_message(f"Ошибка при размещении ордера: {e}", entry.chat_id)
-        return None
+        error_msg = "❌ Ошибка при размещении ордера."
+        error_msg += f"\nДетали: {e}"
+        logger.error(error_msg)
+        return {'success': False, 'error': error_msg, 'order': order}
+    
+    except Exception as e:
+        error_msg = "❌ Ошибка при размещении ордера."
+        error_msg += f"\nДетали: {e}"
+        logger.error(error_msg)
+        return {'success': False, 'error': error_msg, 'order': order}
+
 
 def close_position(exchange, symbol, entry):
     try:
@@ -103,10 +127,11 @@ def close_position(exchange, symbol, entry):
         }
 
         close_response = exchange.create_order(**close_order_params)
-        logger.info(f"✅ Позиция закрыта: {close_response}")
-        return True
+        msg = f"✅ Позиция закрыта: {close_response}"
+        logger.info(msg)
+        return True, msg
 
     except ccxt.BaseError as e:
-        logger.error(f"Ошибка при закрытии позиции: {e}")
-        send_telegram_message(f"Ошибка при размещении ордера: {e}", entry.chat_id)
-        return False
+        msg = f"Ошибка при закрытии позиции: {e}"
+        logger.error(msg)
+        return False, msg

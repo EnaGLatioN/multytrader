@@ -8,9 +8,13 @@ logger = logging.getLogger(__name__)
 
 def notification(entry):
     if chat_id := entry.chat_id:
-        send_telegram_message(get_message(entry),chat_id)
+        send_telegram_message(get_entry_message(entry),chat_id)
 
-def get_message(entry):
+def notification_order(order_one, order_two):
+    if chat_id := order_one.get('order').entry.chat_id:
+        send_telegram_message(get_order_message(order_one, order_two),chat_id)
+
+def get_entry_message(entry):
     """Формирует сообщение для отправки в чат тг"""
 
     status = entry.status
@@ -18,7 +22,8 @@ def get_message(entry):
         'WAIT': '⏳',
         'STOPPED': '⛔️',
         'ACTIVE': '♻️',
-        'COMPLETED': '✅'
+        'COMPLETED': '✅',
+        'FAILED': '❌',
     }.get(status, '❓')
     
     message = (
@@ -32,6 +37,21 @@ def get_message(entry):
         f"🕒 Создан: {entry.created_at.strftime('%Y-%m-%d %H:%M')}"
     )
     return message
+
+
+def get_order_message(order_one, order_two):
+    """Формирует сообщение для отправки в чат тг"""
+    
+    message = (
+        f"Ордер №1\n"
+        f"📊 Статус: {order_one.get('order').status}\n"
+        f"{order_one.get('result') if order_one.get('success') else order_one.get('error')}\n\n"
+        f"Ордер №2\n"
+        f"📊 Статус: {order_two.get('order').status}\n"
+        f"{order_two.get('result') if order_two.get('success') else order_two.get('error')}\n"
+    )
+    return message
+
 
 def send_telegram_message(message, chat_id):
     """Отправляет сообщение в чат тг"""
