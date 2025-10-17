@@ -13,13 +13,8 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        #self.clear()
         self.add_pairs_gate()
         self.add_pairs_bybit()
-
-    def clear(self):
-        PairExchangeMapping.objects.all().delete()
-        WalletPair.objects.all().delete()
 
     def add_pairs_gate(self):
         configuration = gate_api.Configuration(
@@ -50,7 +45,7 @@ class Command(BaseCommand):
             single_wallet_pair = None
 
             if double:
-                single_wallet_pair = WalletPair.objects.create(slug = double.local_name)
+                single_wallet_pair, _ = WalletPair.objects.get_or_create(slug = double.local_name)
                 self.update_double_wallet_pair(double, single_wallet_pair)
 
             PairExchangeMapping.objects.get_or_create(
