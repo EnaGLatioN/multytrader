@@ -65,7 +65,7 @@ class PriceChecker:
             }
         elif self.exchange_type == 'gate':
             # Gate.io API для стакана
-            endpoint = "/api/v4/spot/order_book"
+            endpoint = "/api/v4/futures/order_book"
             params = {
                 'currency_pair': self.wallet_pair if self.wallet_pair else None,
                 'limit': limit
