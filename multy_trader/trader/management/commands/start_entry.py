@@ -42,17 +42,17 @@ class Command(BaseCommand):
 
                 if getter_course <= entry.entry_course:
                     continue
-                #
-                # with ThreadPoolExecutor(max_workers=2) as executor:
-                #     future_open_long = executor.submit(self.long_buy, long_order, entry)
-                #     future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                # result_open_long = future_open_long.result()
-                # result_open_short = future_open_short.result()
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    future_open_long = executor.submit(self.long_buy, long_order, entry)
+                    future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                self.long_buy(long_order, entry)
-                self.short_buy(short_order, entry)
-                # self.check_order(result_open_long, result_open_short, entry, "OPEN")
+                result_open_long = future_open_long.result()
+                result_open_short = future_open_short.result()
+
+                # self.long_buy(long_order, entry)
+                # self.short_buy(short_order, entry)
+                self.check_order(result_open_long, result_open_short, entry, "OPEN")
                 self.update_status_entry(entry, "ACTIVE")
                 flag = False
             elif status == "ACTIVE":
@@ -62,16 +62,16 @@ class Command(BaseCommand):
                     logger.info(getter_course)
                     if getter_course >= exit_course:
                         continue
-                    # with ThreadPoolExecutor(max_workers=2) as executor:
-                    #     result_closed_long = executor.submit(self.long_buy, long_order, entry)
-                    #     result_closed_short = executor.submit(self.short_buy, short_order, entry)
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_open_long = executor.submit(self.long_buy, long_order, entry)
+                        future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                    # result_closed_long = future_open_long.result()
-                    # result_closed_short = future_open_short.result()
+                    result_closed_long = future_open_long.result()
+                    result_closed_short = future_open_short.result()
 
-                    self.long_buy(long_order, entry)
-                    self.short_buy(short_order, entry)
-                    # self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
+                    # self.long_buy(long_order, entry)
+                    # self.short_buy(short_order, entry)
+                    self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
                     self.update_status_entry(entry, "COMPLETED")
                     flag = False
 
