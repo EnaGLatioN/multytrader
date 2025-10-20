@@ -27,14 +27,13 @@ class Command(BaseCommand):
         logger.info('-------STATUS------')
         logger.info(status)
         while flag:
-            time.sleep(0.2)
             bid = price_checker_long.get_bid_ask_prices()
             ask = price_checker_short.get_bid_ask_prices()
             logger.info("---------BID-----------")
             logger.info(bid)
             logger.info("----------ASK---------")
             logger.info(ask)
-            getter_course = ((bid.get("best_bid") / ask.get("best_ask")) - 1) * 100
+            getter_course = ((bid.get("best_ask") / ask.get("best_bid")) - 1) * 100
             if status == "WAIT":
                 
                 logger.info('-------STATUS------')
