@@ -102,8 +102,9 @@ def close_position(exchange, symbol, entry):
                 break
 
         if not current_position:
-            logger.info(f"🔍 Активная позиция не найдена для {symbol}")
-            return False  # Позиции нет, считаем что закрыта
+            msg = f"🔍 Активная позиция не найдена для {symbol}"
+            logger.info(msg)
+            return False, msg # Позиции нет, считаем что закрыта
 
         logger.info(f"🔍 Найдена позиция: {current_position}")
 
