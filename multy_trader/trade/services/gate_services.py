@@ -21,70 +21,70 @@ def gate_buy_futures_contract(entry, order):
 
     proxy = order.proxy
 
-    try:
-        exchange = ccxt.gate({
-            'apiKey': exchange_account.api_key,
-            'secret': exchange_account.secret_key,
-            'enableRateLimit': True,
-            'proxies': proxy.get_proxies() if proxy else None
-        })
+    # try:
+    exchange = ccxt.gate({
+        'apiKey': exchange_account.api_key,
+        'secret': exchange_account.secret_key,
+        'enableRateLimit': True,
+        'proxies': proxy.get_proxies() if proxy else None
+    })
 
-        exchange.options['defaultType'] = 'swap'
-        exchange.options['defaultSettle'] = 'usdt'
+    exchange.options['defaultType'] = 'swap'
+    exchange.options['defaultSettle'] = 'usdt'
 
-        status_close, msg = close_position(exchange, symbol, entry)
-        if not status_close:
-            try:
-                exchange.set_leverage(
-                    leverage=entry.shoulder,
-                    symbol=symbol
-                )
-                logger.info(f"Плечо установлено: {entry.shoulder}x")
-            except ccxt.BaseError as leverage_error:
-                logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
-            order_params = {
-                'symbol': symbol,
-                'type': 'market',
-                'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
-                'amount': entry.profit,
-                'params': {
-                    'timeInForce': 'IOC',
-                }
+    status_close, msg = close_position(exchange, symbol, entry)
+    if not status_close:
+        try:
+            exchange.set_leverage(
+                leverage=entry.shoulder,
+                symbol=symbol
+            )
+            logger.info(f"Плечо установлено: {entry.shoulder}x")
+        except ccxt.BaseError as leverage_error:
+            logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
+        order_params = {
+            'symbol': symbol,
+            'type': 'market',
+            'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
+            'amount': entry.profit,
+            'params': {
+                'timeInForce': 'IOC',
             }
+        }
 
-            order_response = exchange.create_order(**order_params)
-            msg = f"✅ Новая позиция открыта с плечом {entry.shoulder}x: {order_response}"
-            logger.info(msg)
-            order.ex_order_id = order_response.get('id', None)
-            order.save()
+        order_response = exchange.create_order(**order_params)
+        msg = f"✅ Новая позиция открыта с плечом {entry.shoulder}x: {order_response}"
+        logger.info(msg)
+        order.ex_order_id = order_response.get('id', None)
+        order.save()
 
-        return {'success': True, 'result': msg, 'order': order}
+    return {'success': True, 'result': msg, 'order': order}
 
-    except ccxt.AuthenticationError as e:
-        error_msg = "❌ Ошибка аутентификации. Проверьте:"
-        error_msg += "\n1. Ключи созданы на https://www.gate.com"
-        error_msg += "\n2. Включены права на Trade"
-        error_msg += "\n3. Нет ограничений по IP"
-        error_msg += f"\nДетали: {e}"
-        logger.error(error_msg)
-        return {'success': False, 'error': error_msg, 'order': order}
+    # except ccxt.AuthenticationError as e:
+    #     error_msg = "❌ Ошибка аутентификации. Проверьте:"
+    #     error_msg += "\n1. Ключи созданы на https://www.gate.com"
+    #     error_msg += "\n2. Включены права на Trade"
+    #     error_msg += "\n3. Нет ограничений по IP"
+    #     error_msg += f"\nДетали: {e}"
+    #     logger.error(error_msg)
+    #     return {'success': False, 'error': error_msg, 'order': order}
 
-    except ccxt.InsufficientFunds as e:
-        error_msg = f"❌ Недостаточно средств: {e}"
-        logger.error(error_msg)
-        return {'success': False, 'error': error_msg, 'order': order}
-
-    except ccxt.BaseError as e:
-        error_msg = "❌ Ошибка при размещении ордера."
-        error_msg += f"\nДетали: {e}"
-        logger.error(error_msg)
-        return {'success': False, 'error': error_msg, 'order': order}
-    
-    except Exception as e:
-        error_msg = "❌ Ошибка при размещении ордера."
-        error_msg += f"\nДетали: {e}"
-        logger.error(error_msg)
-        return {'success': False, 'error': error_msg, 'order': order}
+    # except ccxt.InsufficientFunds as e:
+    #     error_msg = f"❌ Недостаточно средств: {e}"
+    #     logger.error(error_msg)
+    #     return {'success': False, 'error': error_msg, 'order': order}
+    #
+    # except ccxt.BaseError as e:
+    #     error_msg = "❌ Ошибка при размещении ордера."
+    #     error_msg += f"\nДетали: {e}"
+    #     logger.error(error_msg)
+    #     return {'success': False, 'error': error_msg, 'order': order}
+    #
+    # except Exception as e:
+    #     error_msg = "❌ Ошибка при размещении ордера."
+    #     error_msg += f"\nДетали: {e}"
+    #     logger.error(error_msg)
+    #     return {'success': False, 'error': error_msg, 'order': order}
 
 
 def close_position(exchange, symbol, entry):
