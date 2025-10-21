@@ -23,9 +23,6 @@ class Command(BaseCommand):
         self.start_buy(options.get("entry_id", None))
 
     def futures_buy(self, price_checker_long, price_checker_short, long_order, short_order, entry, flag, status):
-
-        logger.info('-------STATUS------')
-        logger.info(status)
         while flag:
             bid = price_checker_long.get_bid_ask_prices()
             ask = price_checker_short.get_bid_ask_prices()
@@ -35,23 +32,17 @@ class Command(BaseCommand):
             logger.info(ask)
             getter_course = (ask.get("best_bid") / (bid.get("best_ask")) - 1) * 100
             if status == "WAIT":
-                
                 logger.info('-------STATUS------')
                 logger.info(status)
                 logger.info(getter_course)
-
-                if getter_course <= entry.entry_course:
+                if getter_course >= entry.entry_course:
                     continue
-
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     future_open_long = executor.submit(self.long_buy, long_order, entry)
                     future_open_short = executor.submit(self.short_buy, short_order, entry)
 
                 result_open_long = future_open_long.result()
                 result_open_short = future_open_short.result()
-
-                # self.long_buy(long_order, entry)
-                # self.short_buy(short_order, entry)
                 self.check_order(result_open_long, result_open_short, entry, "OPEN")
                 self.update_status_entry(entry, "ACTIVE")
                 flag = False
@@ -60,7 +51,7 @@ class Command(BaseCommand):
                 if entry.exit_course:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
-                    if getter_course >= exit_course:
+                    if getter_course <= exit_course:
                         continue
                     with ThreadPoolExecutor(max_workers=2) as executor:
                         future_open_long = executor.submit(self.long_buy, long_order, entry)
@@ -68,9 +59,6 @@ class Command(BaseCommand):
 
                     result_closed_long = future_open_long.result()
                     result_closed_short = future_open_short.result()
-
-                    # self.long_buy(long_order, entry)
-                    # self.short_buy(short_order, entry)
                     self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
                     self.update_status_entry(entry, "COMPLETED")
                     flag = False
@@ -78,16 +66,12 @@ class Command(BaseCommand):
     def start_buy(self, entry_id):
         
         entry = self.get_entry(entry_id)
-        
-        entry.status = "WAIT"
-        entry.save()
-
+        self.update_status_entry(entry, "WAIT")
         orders = entry.order_entry.all()
         long_order = None
         short_order = None
         flag = True
         for order in orders:
-
             exchange_type = order.exchange_account.exchange.name
             wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_type)
 
