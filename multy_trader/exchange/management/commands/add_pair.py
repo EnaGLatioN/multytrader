@@ -22,6 +22,7 @@ class Command(BaseCommand):
         )
         api_instance = gate_api.FuturesApi(gate_api.ApiClient(configuration))
         response = api_instance.list_futures_contracts(settle='usdt')
+
         exchange, _ = Exchange.objects.get_or_create(name='GATE')
         for resp in response:
             PairExchangeMapping.objects.get_or_create(
@@ -32,7 +33,7 @@ class Command(BaseCommand):
 
     def add_pairs_bybit(self):
         url = "https://api.bybit.com/v5/market/instruments-info"
-        response = requests.get(url, params = {"category": "linear"})
+        response = requests.get(url, params = {"category": "linear", "limit": 1000})
         data = response.json()
         
         response.raise_for_status()
