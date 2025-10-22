@@ -100,6 +100,12 @@ class Entry(Model):
         help_text="Активен ли вход",
         verbose_name="Активность"
     )
+    reverse = BooleanField(
+        default=True,
+        help_text="Реверс",
+        verbose_name="Реверс",
+        db_default=False
+    )
     class Meta:
         db_table = "entry"
         verbose_name = "Вход"

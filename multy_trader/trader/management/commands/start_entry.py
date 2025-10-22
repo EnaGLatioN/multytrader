@@ -23,10 +23,97 @@ class Command(BaseCommand):
         self.start_buy(options.get("entry_id", None))
 
     def futures_buy(self, price_checker_long, price_checker_short, long_order, short_order, entry, flag, status):
-        if entry.entry_course > 0:
+
+        if entry.entry_course > 0 and not entry.reverse:
             self.plural_entry(price_checker_long, price_checker_short, status, entry, long_order, short_order, flag)
-        else:
+        if entry.entry_course < 0 and not entry.reverse:
             self.negativ_entry(price_checker_long, price_checker_short, status, entry, long_order, short_order, flag)
+        if entry.reverse and entry.entry_course < 0:
+            self.ultra_negativ_entry(price_checker_long, price_checker_short, status, entry, long_order, short_order, flag)
+        if entry.reverse and entry.entry_course > 0:
+            self.ultra_plural_entry(price_checker_long, price_checker_short, status, entry, long_order, short_order, flag)
+
+    def ultra_negativ_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
+        while flag:
+            bid = price_checker_long.get_bid_ask_prices()
+            ask = price_checker_short.get_bid_ask_prices()
+            logger.info("---------BID-----------")
+            logger.info(bid)
+            logger.info("----------ASK---------")
+            logger.info(ask)
+            getter_course = (ask.get("best_bid") / (bid.get("best_ask")) - 1) * 100
+            if status == "WAIT":
+                logger.info('-------STATUS------')
+                logger.info(status)
+                logger.info(getter_course)
+                if getter_course <= entry.entry_course:
+                    continue
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    future_open_long = executor.submit(self.long_buy, long_order, entry)
+                    future_open_short = executor.submit(self.short_buy, short_order, entry)
+
+                result_open_long = future_open_long.result()
+                result_open_short = future_open_short.result()
+                self.check_order(result_open_long, result_open_short, entry, "OPEN")
+                self.update_status_entry(entry, "ACTIVE")
+                flag = False
+            elif status == "ACTIVE":
+                exit_course = entry.exit_course
+                if entry.exit_course:
+                    logger.info('-------EXIT------')
+                    logger.info(getter_course)
+                    if getter_course <= exit_course:
+                        continue
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_open_long = executor.submit(self.long_buy, long_order, entry)
+                        future_open_short = executor.submit(self.short_buy, short_order, entry)
+                    result_closed_long = future_open_long.result()
+                    result_closed_short = future_open_short.result()
+                    self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
+                    self.update_status_entry(entry, "COMPLETED")
+                    flag = False
+
+
+    def ultra_plural_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
+        while flag:
+            bid = price_checker_long.get_bid_ask_prices()
+            ask = price_checker_short.get_bid_ask_prices()
+            logger.info("---------BID-----------")
+            logger.info(bid)
+            logger.info("----------ASK---------")
+            logger.info(ask)
+            getter_course = (ask.get("best_bid") / (bid.get("best_ask")) - 1) * 100
+            if status == "WAIT":
+                logger.info('-------STATUS------')
+                logger.info(status)
+                logger.info(getter_course)
+                if getter_course >= entry.entry_course:
+                    continue
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    future_open_long = executor.submit(self.long_buy, long_order, entry)
+                    future_open_short = executor.submit(self.short_buy, short_order, entry)
+
+                result_open_long = future_open_long.result()
+                result_open_short = future_open_short.result()
+                self.check_order(result_open_long, result_open_short, entry, "OPEN")
+                self.update_status_entry(entry, "ACTIVE")
+                flag = False
+            elif status == "ACTIVE":
+                exit_course = entry.exit_course
+                if entry.exit_course:
+                    logger.info('-------EXIT------')
+                    logger.info(getter_course)
+                    if getter_course >= exit_course:
+                        continue
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_open_long = executor.submit(self.long_buy, long_order, entry)
+                        future_open_short = executor.submit(self.short_buy, short_order, entry)
+
+                    result_closed_long = future_open_long.result()
+                    result_closed_short = future_open_short.result()
+                    self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
+                    self.update_status_entry(entry, "COMPLETED")
+                    flag = False
 
     def negativ_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
         while flag:
@@ -62,7 +149,6 @@ class Command(BaseCommand):
                     with ThreadPoolExecutor(max_workers=2) as executor:
                         future_open_long = executor.submit(self.long_buy, long_order, entry)
                         future_open_short = executor.submit(self.short_buy, short_order, entry)
-
                     result_closed_long = future_open_long.result()
                     result_closed_short = future_open_short.result()
                     self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
@@ -111,9 +197,7 @@ class Command(BaseCommand):
                     self.update_status_entry(entry, "COMPLETED")
                     flag = False
 
-
     def start_buy(self, entry_id):
-        
         entry = self.get_entry(entry_id)
         self.update_status_entry(entry, "WAIT")
         orders = entry.order_entry.all()
