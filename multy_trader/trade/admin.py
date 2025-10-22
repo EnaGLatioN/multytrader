@@ -52,7 +52,8 @@ class EntryAdmin(ModelAdmin):
         'exchange_two',
         'wallet_pair', 
         'receive_notifications', 
-        'is_active'
+        'is_active',
+        'reverse'
     )
     list_display = (
         'alias',
