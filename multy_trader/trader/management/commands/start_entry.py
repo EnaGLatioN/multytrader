@@ -73,7 +73,6 @@ class Command(BaseCommand):
                     self.update_status_entry(entry, "COMPLETED")
                     flag = False
 
-
     def ultra_plural_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
         while flag:
             bid = price_checker_long.get_bid_ask_prices()
