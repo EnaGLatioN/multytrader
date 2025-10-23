@@ -27,6 +27,7 @@ class Command(BaseCommand):
         for resp in response:
             PairExchangeMapping.objects.get_or_create(
                 local_name=resp.name,
+                coin_count=resp.quanto_multiplier,
                 exchange=exchange
             )
         logger.info(f"Succes added pairs Gate")
@@ -51,6 +52,7 @@ class Command(BaseCommand):
 
             PairExchangeMapping.objects.get_or_create(
                 local_name=bybit_local_name,
+                coin_count = 0,
                 exchange=exchange,
                 wallet_pair=single_wallet_pair
             )
