@@ -47,31 +47,35 @@ class Command(BaseCommand):
                 logger.info(status)
                 logger.info(getter_course)
                 if getter_course <= entry.entry_course:
-                    continue
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    future_open_long = executor.submit(self.long_buy, long_order, entry)
-                    future_open_short = executor.submit(self.short_buy, short_order, entry)
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_open_long = executor.submit(self.long_buy, long_order, entry)
+                        future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                result_open_long = future_open_long.result()
-                result_open_short = future_open_short.result()
-                self.check_order(result_open_long, result_open_short, entry, "OPEN")
-                self.update_status_entry(entry, "ACTIVE")
-                flag = False
+                    result_open_long = future_open_long.result()
+                    result_open_short = future_open_short.result()
+                    self.check_order(result_open_long, result_open_short, entry, "OPEN")
+                    self.update_status_entry(entry, "ACTIVE")
+                    flag = False
+                else:
+                    continue
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
                 if entry.exit_course:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course <= exit_course:
+                        with ThreadPoolExecutor(max_workers=2) as executor:
+                            future_open_long = executor.submit(self.long_buy, long_order, entry)
+                            future_open_short = executor.submit(self.short_buy, short_order, entry)
+                        result_closed_long = future_open_long.result()
+                        result_closed_short = future_open_short.result()
+                        self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
+                        self.update_status_entry(entry, "COMPLETED")
+                        flag = False
+                    else:
                         continue
-                    with ThreadPoolExecutor(max_workers=2) as executor:
-                        future_open_long = executor.submit(self.long_buy, long_order, entry)
-                        future_open_short = executor.submit(self.short_buy, short_order, entry)
-                    result_closed_long = future_open_long.result()
-                    result_closed_short = future_open_short.result()
-                    self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
-                    self.update_status_entry(entry, "COMPLETED")
-                    flag = False
+                else:
+                    break
 
     def ultra_plural_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
         while flag:
@@ -87,32 +91,36 @@ class Command(BaseCommand):
                 logger.info(status)
                 logger.info(getter_course)
                 if getter_course >= entry.entry_course:
-                    continue
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    future_open_long = executor.submit(self.long_buy, long_order, entry)
-                    future_open_short = executor.submit(self.short_buy, short_order, entry)
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_open_long = executor.submit(self.long_buy, long_order, entry)
+                        future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                result_open_long = future_open_long.result()
-                result_open_short = future_open_short.result()
-                self.check_order(result_open_long, result_open_short, entry, "OPEN")
-                self.update_status_entry(entry, "ACTIVE")
-                flag = False
+                    result_open_long = future_open_long.result()
+                    result_open_short = future_open_short.result()
+                    self.check_order(result_open_long, result_open_short, entry, "OPEN")
+                    self.update_status_entry(entry, "ACTIVE")
+                    flag = False
+                else:
+                    continue
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
                 if entry.exit_course:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course >= exit_course:
-                        continue
-                    with ThreadPoolExecutor(max_workers=2) as executor:
-                        future_open_long = executor.submit(self.long_buy, long_order, entry)
-                        future_open_short = executor.submit(self.short_buy, short_order, entry)
+                        with ThreadPoolExecutor(max_workers=2) as executor:
+                            future_open_long = executor.submit(self.long_buy, long_order, entry)
+                            future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                    result_closed_long = future_open_long.result()
-                    result_closed_short = future_open_short.result()
-                    self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
-                    self.update_status_entry(entry, "COMPLETED")
-                    flag = False
+                        result_closed_long = future_open_long.result()
+                        result_closed_short = future_open_short.result()
+                        self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
+                        self.update_status_entry(entry, "COMPLETED")
+                        flag = False
+                    else:
+                        continue
+                else:
+                    break
 
     def negativ_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
         while flag:
@@ -128,31 +136,35 @@ class Command(BaseCommand):
                 logger.info(status)
                 logger.info(getter_course)
                 if getter_course <= entry.entry_course:
-                    continue
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    future_open_long = executor.submit(self.long_buy, long_order, entry)
-                    future_open_short = executor.submit(self.short_buy, short_order, entry)
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_open_long = executor.submit(self.long_buy, long_order, entry)
+                        future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                result_open_long = future_open_long.result()
-                result_open_short = future_open_short.result()
-                self.check_order(result_open_long, result_open_short, entry, "OPEN")
-                self.update_status_entry(entry, "ACTIVE")
-                flag = False
+                    result_open_long = future_open_long.result()
+                    result_open_short = future_open_short.result()
+                    self.check_order(result_open_long, result_open_short, entry, "OPEN")
+                    self.update_status_entry(entry, "ACTIVE")
+                    flag = False
+                else:
+                    continue
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
                 if entry.exit_course:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course >= exit_course:
+                        with ThreadPoolExecutor(max_workers=2) as executor:
+                            future_open_long = executor.submit(self.long_buy, long_order, entry)
+                            future_open_short = executor.submit(self.short_buy, short_order, entry)
+                        result_closed_long = future_open_long.result()
+                        result_closed_short = future_open_short.result()
+                        self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
+                        self.update_status_entry(entry, "COMPLETED")
+                        flag = False
+                    else:
                         continue
-                    with ThreadPoolExecutor(max_workers=2) as executor:
-                        future_open_long = executor.submit(self.long_buy, long_order, entry)
-                        future_open_short = executor.submit(self.short_buy, short_order, entry)
-                    result_closed_long = future_open_long.result()
-                    result_closed_short = future_open_short.result()
-                    self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
-                    self.update_status_entry(entry, "COMPLETED")
-                    flag = False
+                else:
+                    break
 
 
     def plural_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
@@ -169,32 +181,37 @@ class Command(BaseCommand):
                 logger.info(status)
                 logger.info(getter_course)
                 if getter_course >= entry.entry_course:
-                    continue
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    future_open_long = executor.submit(self.long_buy, long_order, entry)
-                    future_open_short = executor.submit(self.short_buy, short_order, entry)
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_open_long = executor.submit(self.long_buy, long_order, entry)
+                        future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                result_open_long = future_open_long.result()
-                result_open_short = future_open_short.result()
-                self.check_order(result_open_long, result_open_short, entry, "OPEN")
-                self.update_status_entry(entry, "ACTIVE")
-                flag = False
+                    result_open_long = future_open_long.result()
+                    result_open_short = future_open_short.result()
+                    self.check_order(result_open_long, result_open_short, entry, "OPEN")
+                    self.update_status_entry(entry, "ACTIVE")
+                    flag = False
+                else:
+                    continue
+
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
                 if entry.exit_course:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course <= exit_course:
-                        continue
-                    with ThreadPoolExecutor(max_workers=2) as executor:
-                        future_open_long = executor.submit(self.long_buy, long_order, entry)
-                        future_open_short = executor.submit(self.short_buy, short_order, entry)
+                        with ThreadPoolExecutor(max_workers=2) as executor:
+                            future_open_long = executor.submit(self.long_buy, long_order, entry)
+                            future_open_short = executor.submit(self.short_buy, short_order, entry)
 
-                    result_closed_long = future_open_long.result()
-                    result_closed_short = future_open_short.result()
-                    self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
-                    self.update_status_entry(entry, "COMPLETED")
-                    flag = False
+                        result_closed_long = future_open_long.result()
+                        result_closed_short = future_open_short.result()
+                        self.check_order(result_closed_long, result_closed_short, entry, "CLOSED")
+                        self.update_status_entry(entry, "COMPLETED")
+                        flag = False
+                    else:
+                        continue
+                else:
+                    break
 
     def start_buy(self, entry_id):
         entry = self.get_entry(entry_id)
