@@ -101,7 +101,7 @@ class Entry(Model):
         verbose_name="Активность"
     )
     reverse = BooleanField(
-        default=True,
+        default=False,
         help_text="Реверс",
         verbose_name="Реверс",
         db_default=False
