@@ -107,6 +107,11 @@ class PairExchangeMapping(Model):
         max_length=50, 
         verbose_name="Локальное имя на бирже"
     )
+    coin_count = PositiveIntegerField(
+        help_text="Кол-во монет в контракте",
+        verbose_name="Кол-во монет в контракте",
+        default = 0
+    )
 
     class Meta:
         verbose_name = "Маппинг пары на биржу"

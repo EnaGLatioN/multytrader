@@ -17,7 +17,7 @@ def gate_buy_futures_contract(entry, order):
 
     # amount = entry.profit if order.trade_type == TradeType.LONG else -entry.profit
     exchange_account = order.exchange_account
-    symbol = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
+    symbol, coin_count = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
     proxy = order.proxy
 
@@ -46,7 +46,7 @@ def gate_buy_futures_contract(entry, order):
                 'symbol': symbol,
                 'type': 'market',
                 'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
-                'amount': entry.profit,
+                'amount': int(entry.profit / coin_count) if coin_count else entry.profit,
                 'params': {
                     'timeInForce': 'IOC',
                 }

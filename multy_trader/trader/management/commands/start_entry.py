@@ -222,7 +222,7 @@ class Command(BaseCommand):
         flag = True
         for order in orders:
             exchange_type = order.exchange_account.exchange.name
-            wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_type)
+            wallet_pair, _ = get_wallet_pair(entry.wallet_pair, exchange_type)
 
             if order.trade_type == "LONG":
                 long_order = order

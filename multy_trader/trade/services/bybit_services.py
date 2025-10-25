@@ -42,7 +42,7 @@ def bybit_buy_futures_contract(entry, order):
         logger.debug(f"Конфигурация прокси: {exchange.proxies}")
         # logger.info("🔗 Подключаемся к Bybit mainnet...")
 
-        wallet_pair = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
+        wallet_pair, _ = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
         try:
             exchange.set_leverage(entry.shoulder, wallet_pair)

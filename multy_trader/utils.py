@@ -182,7 +182,7 @@ def get_wallet_pair(wallet_pair, exchange) -> str:
     all_wallet = wallet_pair.exchange_mappings.all()
     for local_exchange_wallet in all_wallet:
         if local_exchange_wallet.exchange == Exchange.objects.get(name=exchange):
-            return local_exchange_wallet.local_name
+            return local_exchange_wallet.local_name, local_exchange_wallet.coin_count
 
 
 class PriceCheckerFactory():
