@@ -18,18 +18,19 @@ class Command(BaseCommand):
 
     def add_pairs_gate(self):
         configuration = gate_api.Configuration(
-            host="https://api.gateio.ws/api/v4"
+            host="https://fx-api.gateio.ws/api/v4"
         )
         api_instance = gate_api.FuturesApi(gate_api.ApiClient(configuration))
         response = api_instance.list_futures_contracts(settle='usdt')
 
         exchange, _ = Exchange.objects.get_or_create(name='GATE')
         for resp in response:
-            PairExchangeMapping.objects.get_or_create(
+            x = PairExchangeMapping.objects.get_or_create(
                 local_name=resp.name,
                 coin_count=resp.quanto_multiplier,
                 exchange=exchange
             )
+            print(x)
         logger.info(f"Succes added pairs Gate")
 
     def add_pairs_bybit(self):
