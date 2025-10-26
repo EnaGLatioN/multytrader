@@ -42,7 +42,7 @@ def bybit_buy_futures_contract(entry, order):
         logger.debug(f"Конфигурация прокси: {exchange.proxies}")
         # logger.info("🔗 Подключаемся к Bybit mainnet...")
 
-        wallet_pair, _ = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
+        wallet_pair, coin_count = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
 
         try:
             exchange.set_leverage(entry.shoulder, wallet_pair)
@@ -54,7 +54,7 @@ def bybit_buy_futures_contract(entry, order):
             'symbol': wallet_pair,
             'type': 'market',
             'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
-            'amount': entry.profit,
+            'amount': int(entry.profit / coin_count) if coin_count else 0,
             'params': {
                 'reduceOnly': False,
             }

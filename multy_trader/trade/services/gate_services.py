@@ -46,7 +46,7 @@ def gate_buy_futures_contract(entry, order):
                 'symbol': symbol,
                 'type': 'market',
                 'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
-                'amount': int(entry.profit / coin_count) if coin_count else entry.profit,
+                'amount': int(entry.profit / coin_count) if coin_count else 0,
                 'params': {
                     'timeInForce': 'IOC',
                 }

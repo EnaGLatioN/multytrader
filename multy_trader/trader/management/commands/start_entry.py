@@ -35,13 +35,16 @@ class Command(BaseCommand):
 
     def ultra_negativ_entry(self, price_checker_long, price_checker_short, status, entry, long_order, short_order, flag):
         while flag:
-            bid = price_checker_long.get_bid_ask_prices()
-            ask = price_checker_short.get_bid_ask_prices()
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                future_bid = executor.submit(price_checker_long.get_bid_ask_prices)
+                future_ask = executor.submit(price_checker_short.get_bid_ask_prices)
+            result_bid = future_bid.result()
+            result_ask = future_ask.result()
             logger.info("---------BID-----------")
-            logger.info(bid)
+            logger.info(future_bid)
             logger.info("----------ASK---------")
-            logger.info(ask)
-            getter_course = (ask.get("best_bid") / (bid.get("best_ask")) - 1) * 100
+            logger.info(future_ask)
+            getter_course = (result_ask.get("best_bid") / (result_bid.get("best_ask")) - 1) * 100
             if status == "WAIT":
                 logger.info('-------STATUS------')
                 logger.info(status)

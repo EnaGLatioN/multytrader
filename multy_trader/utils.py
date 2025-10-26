@@ -1,4 +1,6 @@
 import os
+from typing import Any
+
 import django
 import requests
 from exchange.models import Exchange
@@ -176,7 +178,7 @@ class PriceChecker:
             return None
 
 
-def get_wallet_pair(wallet_pair, exchange) -> str:
+def get_wallet_pair(wallet_pair, exchange) -> tuple[Any, Any] | None:
     """Достает имя валютной пары привязанное к нужной бирже"""
 
     all_wallet = wallet_pair.exchange_mappings.all()
