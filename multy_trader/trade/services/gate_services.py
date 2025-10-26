@@ -42,6 +42,9 @@ def gate_buy_futures_contract(entry, order):
                 logger.info(f"Плечо установлено: {entry.shoulder}x")
             except ccxt.BaseError as leverage_error:
                 logger.warning(f"Не удалось установить плечо {entry.shoulder}x: {leverage_error}")
+
+            print("Q"*50)
+            print(int(entry.profit / coin_count) if coin_count else 0)
             order_params = {
                 'symbol': symbol,
                 'type': 'market',

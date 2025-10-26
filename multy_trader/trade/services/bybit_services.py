@@ -50,6 +50,8 @@ def bybit_buy_futures_contract(entry, order):
         except Exception as e:
             logger.warning(f"Не удалось установить плечо: {e}")
 
+        print("Q1"*50)
+        print(entry.profit)
         order_params = {
             'symbol': wallet_pair,
             'type': 'market',
