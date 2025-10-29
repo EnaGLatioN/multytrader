@@ -32,7 +32,8 @@ def gate_buy_futures_contract(entry, order):
         exchange.options['defaultType'] = 'swap'
         exchange.options['defaultSettle'] = 'usdt'
 
-        status_close, msg = close_position(exchange, symbol, entry)
+        status_close, msg = close_position(exchange, symbol, entry, order)
+
         if not status_close:
             try:
                 exchange.set_leverage(
@@ -78,22 +79,22 @@ def gate_buy_futures_contract(entry, order):
         return {'success': False, 'error': error_msg, 'order': order}
 
     except ccxt.BaseError as e:
-        error_msg = "❌ Ошибка при размещении ордера."
-        error_msg += f"\nДетали: {e}"
-        logger.error(error_msg)
+        error_msg = f"❌ Ошибка при размещении ордера: {str(e)}"
+        logger.error(f"CCXT error: {repr(e)}", exc_info=True)  # Логируем полную информацию
         return {'success': False, 'error': error_msg, 'order': order}
 
     except Exception as e:
         error_msg = "❌ Ошибка при размещении ордера."
         error_msg += f"\nДетали: {e}"
-        logger.error(error_msg)
+        logger.error(f"2 CCXT error: {repr(e)}", exc_info=True)  # Логируем полную информацию
         return {'success': False, 'error': error_msg, 'order': order}
 
 
-def close_position(exchange, symbol, entry):
+def close_position(exchange, symbol, entry, order):
     try:
         logger.info(f"🔍 Закрываем позицию для символа {symbol}")
-
+        exchange_account = order.exchange_account
+        symbol, coin_count = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
         # 🔥 ПОЛУЧАЕМ ТЕКУЩУЮ ПОЗИЦИЮ
         positions = exchange.fetch_positions([symbol])
 
@@ -123,9 +124,9 @@ def close_position(exchange, symbol, entry):
             'symbol': symbol,
             'type': 'market',
             'side': side,
-            'amount': amount,
+            'amount': int(entry.profit / coin_count) if coin_count else 0,
             'params': {
-                'reduceOnly': True,  # ⚠️ ВАЖНО: только уменьшение позиции
+                'reduceOnly': True,
                 'timeInForce': 'IOC',
             }
         }
@@ -137,5 +138,6 @@ def close_position(exchange, symbol, entry):
 
     except ccxt.BaseError as e:
         msg = f"Ошибка при закрытии позиции: {e}"
-        logger.error(msg)
+        msg += f"\nДетали: {e}"
+        logger.error(f"close_position gate error: {repr(e)}", exc_info=True)
         return False, msg

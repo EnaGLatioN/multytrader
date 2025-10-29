@@ -63,7 +63,7 @@ class Command(BaseCommand):
                     continue
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
-                if entry.exit_course:
+                if entry.exit_course is not None:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course <= exit_course:
@@ -107,7 +107,7 @@ class Command(BaseCommand):
                     continue
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
-                if entry.exit_course:
+                if entry.exit_course is not None:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course >= exit_course:
@@ -152,7 +152,7 @@ class Command(BaseCommand):
                     continue
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
-                if entry.exit_course:
+                if entry.exit_course is not None:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course >= exit_course:
@@ -198,7 +198,7 @@ class Command(BaseCommand):
 
             elif status == "ACTIVE":
                 exit_course = entry.exit_course
-                if entry.exit_course:
+                if entry.exit_course is not None:
                     logger.info('-------EXIT------')
                     logger.info(getter_course)
                     if getter_course <= exit_course:
