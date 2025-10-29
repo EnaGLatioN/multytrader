@@ -25,10 +25,13 @@ class Command(BaseCommand):
 
         exchange, _ = Exchange.objects.get_or_create(name='GATE')
         for resp in response:
-            x = PairExchangeMapping.objects.get_or_create(
+            x = PairExchangeMapping.objects.update_or_create(
                 local_name=resp.name,
-                coin_count=resp.quanto_multiplier,
-                exchange=exchange
+                exchange=exchange,
+                defaults = {
+                    'min_order': resp.order_size_min * resp.quanto_multiplier,
+                    'coin_count': resp.quanto_multiplier
+                }
             )
             print(x)
         logger.info(f"Succes added pairs Gate")
@@ -51,11 +54,14 @@ class Command(BaseCommand):
                 single_wallet_pair, _ = WalletPair.objects.get_or_create(slug = double.local_name)
                 self.update_double_wallet_pair(double, single_wallet_pair)
 
-            PairExchangeMapping.objects.get_or_create(
+            PairExchangeMapping.objects.update_or_create(
                 local_name=bybit_local_name,
-                coin_count = 0,
                 exchange=exchange,
-                wallet_pair=single_wallet_pair
+                defaults={
+                    'coin_count': 0,
+                    'min_order': symbol['lotSizeFilter']['minOrderQty'],
+                    'wallet_pair': single_wallet_pair
+                }
             )
         logger.info(f"Succes added pairs ByBit")
     

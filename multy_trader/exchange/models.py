@@ -112,6 +112,11 @@ class PairExchangeMapping(Model):
         verbose_name="Кол-во монет в контракте",
         default = 0
     )
+    min_order = FloatField(
+        help_text="Минимальное количество монет для покупки",
+        verbose_name="Минимальное количество монет для покупки",
+        default = 0
+    )
 
     class Meta:
         verbose_name = "Маппинг пары на биржу"
