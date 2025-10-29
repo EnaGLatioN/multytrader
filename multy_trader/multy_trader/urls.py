@@ -16,9 +16,10 @@ Including another URLconf
 """
 from django.urls import path
 from trader.admin import my_admin_site
-
+from trade.views import get_min_profit
 
 urlpatterns = [
     path('admin/', my_admin_site.urls),
+    path('get-min-profit/', get_min_profit, name='get_min_profit'),
 ]
 

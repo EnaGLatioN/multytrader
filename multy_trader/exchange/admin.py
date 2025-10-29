@@ -10,7 +10,7 @@ class ExchangeAdmin(ModelAdmin):
 
 
 class PairExchangeMappingAdmin(ModelAdmin):
-    fields = ('local_name', 'wallet_pair', 'exchange')
+    fields = ('local_name', 'coin_count', 'min_order', 'wallet_pair', 'exchange')
     search_fields = ('local_name',)
     list_display = ('local_name', 'wallet_pair', 'exchange')
     list_filter = ('exchange',)
