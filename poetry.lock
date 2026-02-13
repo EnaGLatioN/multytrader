@@ -522,6 +522,21 @@ cryptography = ">=3.4"
 Django = ">=2.2"
 
 [[package]]
+name = "django-jazzmin"
+version = "3.0.2"
+description = "Drop-in theme for django admin, that utilises AdminLTE 3 & Bootstrap 5 to make yo' admin look jazzy"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "django_jazzmin-3.0.2-py3-none-any.whl", hash = "sha256:e847be81f9704ba70b740fa8378781bd1412e9d09772ba0e6a0c8b56fcdf84d4"},
+    {file = "django_jazzmin-3.0.2.tar.gz", hash = "sha256:cb247757b1e71f0c0f97d776856a32c3dd1377a7ffda6a731879cdc5e0e9ae89"},
+]
+
+[package.dependencies]
+django = ">=4.2"
+
+[[package]]
 name = "frozenlist"
 version = "1.7.0"
 description = "A list-like structure which implements collections.abc.MutableSequence"
@@ -1384,4 +1399,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <4.0"
-content-hash = "0809d28f032df3c9f82c33b2e7ef50211545ea7e9db30658f2740685528c3d74"
+content-hash = "210dbbb003b6d371c65c4df51d43a870855028db101677716f6f102177152c3c"

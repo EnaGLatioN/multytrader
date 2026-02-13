@@ -43,6 +43,7 @@ AUTH_USER_MODEL = 'trader.CustomUser'
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -86,7 +87,6 @@ WSGI_APPLICATION = 'multy_trader.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': cnf('ENGINE_DB'),
@@ -118,6 +118,30 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+JAZZMIN_SETTINGS = {
+    "site_title": "Мультитрейдер",
+    "site_header": "Мультитрейдер",
+    "site_brand": "Мультитрейдер",
+    "welcome_sign": "Добро пожаловать в Мультитрейдер",
+    "topmenu_links": [
+        {"name": "Инструкция", "url": "https://docs.google.com/document/d/1gl80N-VysVFCTzPCB7tXJSc7ylNRnjjS7w35QQubJVs/edit?usp=sharing", "new_window": True},
+    ],
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "trader.ExchangeAccount":"fa-regular fa-address-card",
+        "trader.Proxy":"fa-solid fa-mask",
+        "trader.CustomUser":"fa-solid fa-house-user",
+        "trade.Entry":"fa-solid fa-hand-holding-dollar",
+        "exchange.Exchange":"fa-solid fa-arrow-trend-up",
+        "exchange.WalletPair":"fa-solid fa-coins"
+    },
+    "show_ui_builder": True,
+    "usermenu_links": [
+        {"model": "auth.user"}
+    ],
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

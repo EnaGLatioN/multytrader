@@ -13,6 +13,15 @@ from django.db.models import (
 
 
 class WalletPair(Model):
+    """
+    Единая валютная пара, для удоства пользователя.
+    Связана как один ко многим с PairExchangeMapping.
+
+    Слаг всегда чистая строка в верхнем регистре.
+    Формируется в скрипте add_pair, 
+    является основой для связывания валютных пар с разных бирж
+    """
+
     id = UUIDField(
         default=uuid4,
         help_text="Уникальный идентификатор ",
@@ -45,6 +54,10 @@ class WalletPair(Model):
         return self.slug
 
 class Exchange(Model):
+    """
+    Биржа
+    """
+
     id = UUIDField(
         default=uuid4,
         help_text="Уникальный идентификатор ",
@@ -89,6 +102,10 @@ class Exchange(Model):
         return self.name
 
 class PairExchangeMapping(Model):
+    """
+    Валютная пара определенной биржи.
+    """
+
     wallet_pair = ForeignKey(
         WalletPair,
         blank=True, 
@@ -117,10 +134,14 @@ class PairExchangeMapping(Model):
         verbose_name="Минимальное количество монет для покупки",
         default = 0
     )
+    normalized_name = CharField(
+        max_length=50, 
+        db_index=True
+    )
 
     class Meta:
-        verbose_name = "Маппинг пары на биржу"
-        verbose_name_plural = "Маппинги пар на биржи"
+        verbose_name = "Локальная валютная пара"
+        verbose_name_plural = "Локальная валютная"
         unique_together = ['wallet_pair', 'exchange']
         ordering = ['wallet_pair', 'exchange']
 

@@ -18,7 +18,7 @@ class PairExchangeMappingAdmin(ModelAdmin):
 
 
 class WalletPairAdmin(ModelAdmin):
-    fields = ('slug', 'is_active',)
+    fields = ('slug', 'is_active')
     search_fields = ('slug',)
     list_display = ('slug', 'is_active', 'get_pairs')
     list_filter = ('is_active',)
