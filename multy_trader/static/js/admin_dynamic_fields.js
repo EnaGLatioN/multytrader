@@ -57,7 +57,7 @@
                 if (selectedPair && selectedPair !== '' && selectedPair !== '---------') {
                     // AJAX запрос для получения минимального значения
                     $.ajax({
-                        url: '/get-min-profit/', // Замените на ваш URL
+                        url: '/trade/get-min-profit/', // Замените на ваш URL
                         type: 'GET',
                         data: {
                             'wallet_pair': selectedPair

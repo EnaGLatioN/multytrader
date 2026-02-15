@@ -1,18 +1,51 @@
+import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from exchange.models import WalletPair
+from django.contrib.admin.views.decorators import staff_member_required
+from exchange.models import Exchange
+from trader.models import ExchangeAccount
+from trade.models import Order
+from django.template.loader import render_to_string
 
 
+@staff_member_required
+@csrf_exempt
+def get_exchange_accounts(request):
+    """Возвращает аккаунты для выбранных бирж"""
+    exchange_ids = request.GET.getlist('exchange_ids[]')
+    if not exchange_ids:
+        return JsonResponse({'accounts': []})
+    
+    accounts = ExchangeAccount.objects.filter(
+        exchange_id__in=exchange_ids,
+        is_active=True
+    ).values('id', 'login', 'exchange__name')
+    
+    return JsonResponse({'accounts': list(accounts)})
+
+ 
+@csrf_exempt
+def save_exchanges_to_session(request):
+    """Сохраняет выбранные биржи в сессию"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        exchange_ids = data.get('exchange_ids', [])
+        entry_id = data.get('entry_id')
+        
+        request.session['selected_exchanges'] = exchange_ids
+        request.session['entry_id'] = entry_id
+        
+        return JsonResponse({'status': 'ok'})
+
+# твой существующий метод
 @csrf_exempt
 def get_min_profit(request):
-    wallet_pair = WalletPair.objects.get(id = request.GET.get('wallet_pair'))
+    wallet_pair = WalletPair.objects.get(id=request.GET.get('wallet_pair'))
     result = []
     for wallet in wallet_pair.exchange_mappings.all():
         if wallet.exchange.name == 'BYBIT':
-            # тут пока сомнения
             result.append(wallet.min_order)
         elif wallet.exchange.name == 'GATE':
             result.append(wallet.min_order)  
     print(result)
     return JsonResponse({'min_profit': max(result)})
-

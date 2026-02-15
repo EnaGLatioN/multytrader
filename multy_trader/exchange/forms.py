@@ -8,9 +8,9 @@ class WalletPairAdminForm(forms.ModelForm):
 
     selected_pairs = forms.ModelMultipleChoiceField(
         queryset=PairExchangeMapping.objects.all(),
-        widget=admin.widgets.FilteredSelectMultiple("биржевые пары", is_stacked=False),
+        widget=admin.widgets.FilteredSelectMultiple("валютные пары", is_stacked=False),
         required=False,
-        label="Выберите биржевые пары"
+        label="Выберите валютные пары"
     )
     
     class Meta:
