@@ -123,6 +123,10 @@ JAZZMIN_SETTINGS = {
     "site_header": "Мультитрейдер",
     "site_brand": "Мультитрейдер",
     "welcome_sign": "Добро пожаловать в Мультитрейдер",
+        "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "exchange.Exchange": "horizontal_tabs",
+    },
     "topmenu_links": [
         {"name": "Инструкция", "url": "https://docs.google.com/document/d/1gl80N-VysVFCTzPCB7tXJSc7ylNRnjjS7w35QQubJVs/edit?usp=sharing", "new_window": True},
     ],

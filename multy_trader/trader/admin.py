@@ -2,6 +2,7 @@ from django.contrib.admin import AdminSite, ModelAdmin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
+from django.contrib import admin
 from .models import CustomUser, Proxy, ExchangeAccount
 from django.contrib.auth import get_user_model
 
@@ -59,9 +60,6 @@ class CustomExchangeAccount(ModelAdmin):
         
 User = get_user_model()
 
-my_admin_site = TradeAdminSite(name='myadmin')
-
-my_admin_site.register(CustomUser, CustomUserAdmin)
-my_admin_site.register(Proxy, CustomProxy)
-my_admin_site.register(ExchangeAccount, CustomExchangeAccount)
-my_admin_site.register(Group)
+admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(Proxy, CustomProxy)
+admin.site.register(ExchangeAccount, CustomExchangeAccount)

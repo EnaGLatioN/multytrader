@@ -15,11 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
-from trader.admin import my_admin_site
+from django.contrib import admin
 from trade.views import get_min_profit
 
 urlpatterns = [
-    path('admin/', my_admin_site.urls),
+    path('admin/', admin.site.urls),
     path('get-min-profit/', get_min_profit, name='get_min_profit'),
 ]
 

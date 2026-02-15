@@ -7,7 +7,7 @@ from email.policy import default
 from django.contrib.admin import ModelAdmin, TabularInline
 from django.contrib.messages import warning
 from .models import Entry, Order, Process, EntryStatusType
-from trader.admin import my_admin_site
+from django.contrib import admin
 from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair, Exchange
 import subprocess
@@ -183,5 +183,5 @@ class EntryAdmin(ModelAdmin):
             )
 
 
-my_admin_site.register(Entry, EntryAdmin)
-my_admin_site.register(Order, OrderAdmin)
+admin.site.register(Entry, EntryAdmin)
+admin.site.register(Order, OrderAdmin)

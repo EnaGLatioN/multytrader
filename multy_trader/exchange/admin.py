@@ -1,37 +1,92 @@
-from django.contrib.admin import ModelAdmin
+from django.contrib.admin import ModelAdmin, TabularInline
 from .models import Exchange, WalletPair, PairExchangeMapping
-from trader.admin import my_admin_site
+from django.contrib import admin
+from .forms import WalletPairAdminForm
 
 
 class ExchangeAdmin(ModelAdmin):
-    fields = ('name', 'base_url', 'api_endpoint','max_limit', 'min_limit')
     search_fields = ('name',)
     search_help_text = 'Введите название биржи для поиска'
+    fieldsets = (
+        ("Основная информация", {
+            "fields": ("name",)
+            }
+        ),
+        ("Системная информация", {
+            "fields": ("base_url", "api_endpoint", "max_limit", "min_limit"),
+            "description": "Данные необходимые для покупки"
+            }
+        ),
+    )
 
+    class Media:
+        js = ('admin/js/jazzmin_tabs_fix.js',)
+    
 
 class PairExchangeMappingAdmin(ModelAdmin):
-    fields = ('local_name', 'coin_count', 'min_order', 'wallet_pair', 'exchange')
     search_fields = ('local_name',)
     list_display = ('local_name', 'wallet_pair', 'exchange')
     list_filter = ('exchange',)
     search_help_text = 'Введите название валютной пары для поиска'
+    readonly_fields = ('local_name',)
+    
+    fieldsets = (
+        ("Основная информация", {
+            "fields": ("local_name", 'wallet_pair', 'exchange')
+            }
+        ),
+        ("Системная информация", {
+            "fields": ("coin_count", "min_order"),
+            "description": "Данные необходимые для покупки"
+            }
+        ),
+    )
+    class Media:
+        js = ('admin/js/jazzmin_tabs_fix.js',)
+
+
+class PairExchangeInline(TabularInline):
+    model = PairExchangeMapping
+    fields = ('local_name', 'exchange')
 
 
 class WalletPairAdmin(ModelAdmin):
-    fields = ('slug', 'is_active')
+    form = WalletPairAdminForm
     search_fields = ('slug',)
     list_display = ('slug', 'is_active', 'get_pairs')
     list_filter = ('is_active',)
     search_help_text = 'Введите валютную пару для поиска'
-
-    def get_pairs(self,obj):
+    
+    fieldsets = (
+        ("Основная информация", {
+            "fields": ('slug', 'is_active')
+        }),
+        ("Связанные валютные пары", {
+            "fields": ("selected_pairs",),
+            "description": "Выберите существующие пары из списка",
+            "classes": ("wide",),
+        }),
+    )
+    
+    def get_pairs(self, obj):
         pairs = obj.exchange_mappings.all()
-        normalized_pairs = [pair.local_name for pair in pairs]
-        return ", ".join(normalized_pairs) or "Нет пар"
-
+        return ", ".join([p.local_name for p in pairs]) or "Нет пар"
+    
     get_pairs.short_description = "Валютные пары бирж"
 
+    def save_model(self, request, obj, form, change):
+        """Сохраняет объект и обновляет связи"""
+        obj.save()
+        
+        if 'selected_pairs' in form.cleaned_data:
+            selected_pairs = form.cleaned_data['selected_pairs']
+            PairExchangeMapping.objects.filter(wallet_pair=obj).update(wallet_pair=None)
+            selected_ids = [p.id for p in selected_pairs]
+            PairExchangeMapping.objects.filter(id__in=selected_ids).update(wallet_pair=obj)
 
-my_admin_site.register(Exchange, ExchangeAdmin)
-my_admin_site.register(WalletPair, WalletPairAdmin)
-my_admin_site.register(PairExchangeMapping, PairExchangeMappingAdmin)
+    class Media:
+        js = ('admin/js/jazzmin_tabs_fix.js',)
+
+admin.site.register(Exchange, ExchangeAdmin)
+admin.site.register(WalletPair, WalletPairAdmin)
+admin.site.register(PairExchangeMapping, PairExchangeMappingAdmin)
