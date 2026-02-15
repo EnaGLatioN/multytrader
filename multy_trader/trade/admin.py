@@ -9,11 +9,12 @@ from django.contrib.messages import warning
 from .models import Entry, Order, Process, EntryStatusType
 from django.contrib import admin
 from trader.models import ExchangeAccount, Proxy
-from exchange.models import WalletPair, Exchange
+from exchange.models import WalletPair, Exchange, PairExchangeMapping
 import subprocess
 from .forms import EntryForm
 from trade.bot import notification
 from decouple import config
+from django.db.models import Count
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -80,6 +81,11 @@ class DynamicOrderInline(TabularInline):
 class EntryAdmin(ModelAdmin):
     form = EntryForm
     fieldsets = (
+        ("Биржи", {
+            "fields": (
+                'exchanges',
+            )
+        }),
         ("Основные настройки", {
             "fields": (
                 'alias', 
@@ -87,8 +93,7 @@ class EntryAdmin(ModelAdmin):
                 'exit_course', 
                 'entry_course', 
                 'shoulder',
-                'wallet_pair', 
-                'exchanges'  # Поле выбора бирж
+                'wallet_pair'
             )
         }),
         ("Дополнительно", {
@@ -149,27 +154,43 @@ class EntryAdmin(ModelAdmin):
                 inlines.append(inline_class)
         
         return inlines
-    
+        
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
-        # При загрузке формы проверяем, есть ли в сессии выбранные биржи
+        form = self.get_form(request, object_id)
+        
         if 'selected_exchanges' in request.session:
-            # Можно передать в контекст для предзаполнения поля
-            extra_context = extra_context or {}
             exchange_ids = request.session['selected_exchanges']
-            extra_context['selected_exchanges'] = exchange_ids
+            if hasattr(form, 'base_fields') and 'exchanges' in form.base_fields:
+                form.base_fields['exchanges'].initial = Exchange.objects.filter(id__in=exchange_ids)
+        
+        extra_context = extra_context or {}
+        extra_context['form'] = form
         
         return super().changeform_view(request, object_id, form_url, extra_context)
 
-    # Остальные методы без изменений
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'wallet_pair': 
-            if request.user.is_superuser:
-                kwargs["queryset"] = WalletPair.objects.filter(is_active=True)
-            else:
-                kwargs["queryset"] = WalletPair.objects.filter(
-                    customuser_wallet_pairs=request.user, 
-                    is_active=True
-                )
+        if db_field.name == 'wallet_pair':
+            exchange_ids = request.session.get('selected_exchanges', [])
+            if exchange_ids:
+                id_wallet = PairExchangeMapping.objects.filter(
+                    exchange_id__in=exchange_ids
+                ).values('normalized_name').annotate(
+                    exchange_count=Count('exchange_id', distinct=True)
+                ).filter(
+                    exchange_count=len(exchange_ids)
+                ).values_list('wallet_pair', flat=True)
+                
+                if request.user.is_superuser:
+                    kwargs["queryset"] = WalletPair.objects.filter(
+                        is_active=True,
+                        id__in=id_wallet
+                    )
+                else:
+                    kwargs["queryset"] = WalletPair.objects.filter(
+                        customuser_wallet_pairs=request.user, 
+                        is_active=True,
+                        id__in=id_wallet
+                    )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     def get_queryset(self, request):

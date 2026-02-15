@@ -66,7 +66,12 @@
                     saveExchangesToSession(selected);
                 }, 100);
             });
-            
+            $('.nav-tabs a').on('shown.bs.tab', function(e) {
+            var selected = getSelectedFromChosen();
+            if (selected.length === 0) {
+                $('.dynamic-inline').remove();
+            }
+            });
             $chosenSelect.on('dblclick', 'option', function() {
                 console.log('Option double clicked');
                 setTimeout(function() {

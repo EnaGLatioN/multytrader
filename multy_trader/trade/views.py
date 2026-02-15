@@ -37,7 +37,13 @@ def save_exchanges_to_session(request):
         
         return JsonResponse({'status': 'ok'})
 
-# твой существующий метод
+@csrf_exempt
+def clear_exchanges_session(request):
+    if request.method == 'POST':
+        if 'selected_exchanges' in request.session:
+            del request.session['selected_exchanges']
+        return JsonResponse({'status': 'ok'})
+
 @csrf_exempt
 def get_min_profit(request):
     wallet_pair = WalletPair.objects.get(id=request.GET.get('wallet_pair'))
