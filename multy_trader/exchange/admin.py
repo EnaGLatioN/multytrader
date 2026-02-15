@@ -23,28 +23,6 @@ class ExchangeAdmin(ModelAdmin):
         js = ('admin/js/jazzmin_tabs_fix.js',)
     
 
-class PairExchangeMappingAdmin(ModelAdmin):
-    search_fields = ('local_name',)
-    list_display = ('local_name', 'wallet_pair', 'exchange')
-    list_filter = ('exchange',)
-    search_help_text = 'Введите название валютной пары для поиска'
-    readonly_fields = ('local_name',)
-    
-    fieldsets = (
-        ("Основная информация", {
-            "fields": ("local_name", 'wallet_pair', 'exchange')
-            }
-        ),
-        ("Системная информация", {
-            "fields": ("coin_count", "min_order"),
-            "description": "Данные необходимые для покупки"
-            }
-        ),
-    )
-    class Media:
-        js = ('admin/js/jazzmin_tabs_fix.js',)
-
-
 class PairExchangeInline(TabularInline):
     model = PairExchangeMapping
     fields = ('local_name', 'exchange')
@@ -67,7 +45,7 @@ class WalletPairAdmin(ModelAdmin):
             "classes": ("wide",),
         }),
     )
-    
+
     def get_pairs(self, obj):
         pairs = obj.exchange_mappings.all()
         return ", ".join([p.local_name for p in pairs]) or "Нет пар"
@@ -89,4 +67,3 @@ class WalletPairAdmin(ModelAdmin):
 
 admin.site.register(Exchange, ExchangeAdmin)
 admin.site.register(WalletPair, WalletPairAdmin)
-admin.site.register(PairExchangeMapping, PairExchangeMappingAdmin)
