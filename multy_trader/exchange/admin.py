@@ -19,9 +19,6 @@ class ExchangeAdmin(ModelAdmin):
         ),
     )
 
-    class Media:
-        js = ('admin/js/jazzmin_tabs_fix.js',)
-    
 
 class PairExchangeInline(TabularInline):
     model = PairExchangeMapping
@@ -61,9 +58,6 @@ class WalletPairAdmin(ModelAdmin):
             PairExchangeMapping.objects.filter(wallet_pair=obj).update(wallet_pair=None)
             selected_ids = [p.id for p in selected_pairs]
             PairExchangeMapping.objects.filter(id__in=selected_ids).update(wallet_pair=obj)
-
-    class Media:
-        js = ('admin/js/jazzmin_tabs_fix.js',)
 
 admin.site.register(Exchange, ExchangeAdmin)
 admin.site.register(WalletPair, WalletPairAdmin)

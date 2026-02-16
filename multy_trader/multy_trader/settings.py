@@ -119,6 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 JAZZMIN_SETTINGS = {
+    "user_avatar": None,
     "site_title": "Мультитрейдер",
     "site_header": "Мультитрейдер",
     "site_brand": "Мультитрейдер",
@@ -127,12 +128,8 @@ JAZZMIN_SETTINGS = {
     "changeform_format_overrides": {
         "exchange.Exchange": "horizontal_tabs",
     },
-    "topmenu_links": [
-        {"name": "Инструкция", "url": "https://docs.google.com/document/d/1gl80N-VysVFCTzPCB7tXJSc7ylNRnjjS7w35QQubJVs/edit?usp=sharing", "new_window": True},
-    ],
     "icons": {
         "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
         "trader.ExchangeAccount":"fa-regular fa-address-card",
         "trader.Proxy":"fa-solid fa-mask",
@@ -141,12 +138,42 @@ JAZZMIN_SETTINGS = {
         "exchange.Exchange":"fa-solid fa-arrow-trend-up",
         "exchange.WalletPair":"fa-solid fa-coins"
     },
+    "user_display": "username",
     "show_ui_builder": True,
-    "usermenu_links": [
-        {"model": "auth.user"}
-    ],
 }
 
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": True,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": "cyborg",
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
+    "actions_sticky_top": False
+}
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 

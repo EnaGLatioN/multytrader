@@ -523,14 +523,14 @@ Django = ">=2.2"
 
 [[package]]
 name = "django-jazzmin"
-version = "3.0.2"
-description = "Drop-in theme for django admin, that utilises AdminLTE 3 & Bootstrap 5 to make yo' admin look jazzy"
+version = "3.0.1"
+description = "Drop-in theme for django admin, that utilises AdminLTE 3 & Bootstrap 4 to make yo' admin look jazzy"
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "django_jazzmin-3.0.2-py3-none-any.whl", hash = "sha256:e847be81f9704ba70b740fa8378781bd1412e9d09772ba0e6a0c8b56fcdf84d4"},
-    {file = "django_jazzmin-3.0.2.tar.gz", hash = "sha256:cb247757b1e71f0c0f97d776856a32c3dd1377a7ffda6a731879cdc5e0e9ae89"},
+    {file = "django_jazzmin-3.0.1-py3-none-any.whl", hash = "sha256:12a0a4c1d4fd09c2eef22acf6a1f03112b515ba695c59faa8ea80efc81c1f21b"},
+    {file = "django_jazzmin-3.0.1.tar.gz", hash = "sha256:67ae148bade41267a09ca8e4352ddefa6121795ebbac238bb9a6564ff841eb1b"},
 ]
 
 [package.dependencies]
@@ -1399,4 +1399,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <4.0"
-content-hash = "210dbbb003b6d371c65c4df51d43a870855028db101677716f6f102177152c3c"
+content-hash = "52b86017d531ef00326641c44cc6421aa6b850577d88c2da8bd20639b41a4567"
