@@ -22,8 +22,8 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        PairExchangeMapping.objects.all().delete()
-        WalletPair.objects.all().delete()
+        #PairExchangeMapping.objects.all().delete()
+        #WalletPair.objects.all().delete()
 
         exchanges = {
             'GATE': self.get_wallet_pairs_from_gate,
