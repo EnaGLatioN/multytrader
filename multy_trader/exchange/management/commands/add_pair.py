@@ -62,9 +62,14 @@ class Command(BaseCommand):
         response = api_instance.list_futures_contracts(settle='usdt')
 
         for resp in response:
+            order_size_min = float(resp.order_size_min) if resp.order_size_min else 0
+            quanto_multiplier = float(resp.quanto_multiplier) if resp.quanto_multiplier else 1
+
             self.create_pair_exchange_mapping(
                 resp.name,
-                exchange
+                exchange,
+                min_order = order_size_min * quanto_multiplier,
+                coin_count = quanto_multiplier
             )
 
     def get_wallet_pairs_from_bybit(self, exchange: Exchange) -> None:
@@ -81,7 +86,9 @@ class Command(BaseCommand):
         for symbol in data["result"]["list"]:
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
-                exchange
+                exchange,
+                min_order = symbol['lotSizeFilter']['minOrderQty'],
+                coin_count = 0
             )
     
     def get_wallet_pairs_kucoin(self, exchange: Exchange) -> None:
@@ -217,15 +224,19 @@ class Command(BaseCommand):
         
                 other.update(wallet_pair=wallet_pair)
 
-    def create_pair_exchange_mapping(self, name: str, exchange: Exchange) -> None:
+    def create_pair_exchange_mapping(self, name: str, exchange: Exchange, **kwargs) -> None:
         """
         Создает валютные пары
         """
 
-        PairExchangeMapping.objects.get_or_create(
+        PairExchangeMapping.objects.update_or_create(
             local_name=name,
             exchange=exchange,
-            normalized_name=self.normalyze_local_name(name)
+            defaults = {
+                'normalized_name': self.normalyze_local_name(name),
+                'min_order': kwargs.get('min_order', 0),
+                'coin_count': kwargs.get('coin_count', 0)
+            }
         )
 
     def normalyze_local_name(self, name) -> str:
