@@ -149,7 +149,7 @@ class ExchangeAccount(Model):
         ordering = ["login"]
 
     def __str__(self):
-        return f'{self.login} {self.exchange}'
+        return self.login
     
 
 class CustomUser(AbstractUser):

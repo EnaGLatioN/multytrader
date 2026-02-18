@@ -43,7 +43,7 @@ class OrderInline(TabularInline):
 class DynamicOrderInline(TabularInline):
     """Инлайн для конкретной биржи"""
     model = Order
-    fields = ['exchange_account', 'proxy', 'trade_type', 'status', 'ex_order_id']
+    fields = ['exchange_account', 'proxy', 'trade_type']
     extra = 1
     can_delete = True
     template = 'admin/edit_inline/tabular.html'
@@ -88,12 +88,12 @@ class EntryAdmin(ModelAdmin):
         }),
         ("Основные настройки", {
             "fields": (
-                'alias', 
+                'alias',
+                'wallet_pair',
                 'profit', 
                 'exit_course', 
                 'entry_course', 
-                'shoulder',
-                'wallet_pair'
+                'shoulder'
             )
         }),
         ("Дополнительно", {
@@ -116,9 +116,8 @@ class EntryAdmin(ModelAdmin):
     class Media:
         js = (
             'admin/js/jquery.init.js',
-            'js/admin_dynamic_fields.js',
-            'admin/js/jazzmin_tabs_fix.js',
             'admin/js/dynamic_exchange_inlines.js',
+            'admin/js/min_order_hint.js'
         )
     
     def get_exchanges_display(self, obj):

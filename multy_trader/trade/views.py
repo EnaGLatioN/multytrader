@@ -2,7 +2,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-from exchange.models import Exchange
+from exchange.models import Exchange, WalletPair, PairExchangeMapping
 from trader.models import ExchangeAccount
 from trade.models import Order
 from django.template.loader import render_to_string
@@ -45,13 +45,14 @@ def clear_exchanges_session(request):
         return JsonResponse({'status': 'ok'})
 
 @csrf_exempt
-def get_min_profit(request):
-    wallet_pair = WalletPair.objects.get(id=request.GET.get('wallet_pair'))
-    result = []
-    for wallet in wallet_pair.exchange_mappings.all():
-        if wallet.exchange.name == 'BYBIT':
-            result.append(wallet.min_order)
-        elif wallet.exchange.name == 'GATE':
-            result.append(wallet.min_order)  
-    print(result)
-    return JsonResponse({'min_profit': max(result)})
+def get_min_order(request):
+    data = json.loads(request.body)
+    slug = WalletPair.objects.get(id=data.get('wallet_pair_id')).slug
+    all_min_order = PairExchangeMapping.objects.filter(
+        normalized_name = slug, 
+        exchange__in=data.get('exchange_ids', [])
+    ).values_list('min_order', flat=True)
+    return JsonResponse({
+            'success': True,
+            'min_order': min(all_min_order),
+        })
