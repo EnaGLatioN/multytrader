@@ -19,6 +19,8 @@ class Command(BaseCommand):
     где хранятся локальные валютные пары с каждой биржи, также проверяем
     нормализованное название валюной пары среди имеющихся единых пар, чтобы 
     связать все локальные валютные пары в единую пару.
+
+    Парсим минимальное количество монет у каждой валютной пары.
     """
 
     def handle(self, *args, **options):
@@ -30,10 +32,10 @@ class Command(BaseCommand):
             'BYBIT': self.get_wallet_pairs_from_bybit,
             'KUCOIN': self.get_wallet_pairs_kucoin,
             'BINANCE': self.get_wallet_pairs_binance,
-            'HTX': self.get_wallet_pairs_htx,
-            'MEXC': self.get_wallet_pairs_mexc,
+            'HTX': self.get_wallet_pairs_htx, ###
+            'MEXC': self.get_wallet_pairs_mexc, ###
             'BINGX': self.get_wallet_pairs_bingx,
-            'OURBIT': self.get_wallet_pairs_ourbit,
+            'OURBIT': self.get_wallet_pairs_ourbit, ###
             'OKX': self.get_wallet_pairs_okx
         }
         
@@ -95,7 +97,7 @@ class Command(BaseCommand):
         """
         Достает валютные пары с биржи KUCOIN.
         """
-
+        # С суффиксом USDM (без T) - старые inverse-контракты
         url = "https://api-futures.kucoin.com/api/v1/contracts/active"
         response = requests.get(url)
         data = response.json()
@@ -104,12 +106,15 @@ class Command(BaseCommand):
         for symbol in data['data']:
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
-                exchange
+                exchange,
+                min_order = symbol['lotSize'] * symbol['multiplier'],
+                coin_count = symbol['multiplier']
             )
     
     def get_wallet_pairs_binance(self, exchange: Exchange) -> None:
         """
         Достает валютные пары с биржи BINANCE.
+        В Binance 1 контракт = 1 монета.
         """
 
         url = "https://fapi.binance.com/fapi/v1/exchangeInfo"
@@ -118,16 +123,20 @@ class Command(BaseCommand):
     
         response.raise_for_status()
         for symbol in data['symbols']:
+            min_order = [filter['minQty'] for filter in symbol['filters'] if filter['filterType'] == 'LOT_SIZE']
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
-                exchange
+                exchange,
+                min_order = min_order[0],
+                coin_count = 1
             )
     
     def get_wallet_pairs_htx(self, exchange: Exchange) -> None:
         """
-        Достает валютные пары с биржи BINANCE.
+        Достает валютные пары с биржи HTX.
+        symbol['contract_size'] - Стоимость контракта (в USDT за один контракт)
         """
-
+        
         url = "https://api.hbdm.com/linear-swap-api/v1/swap_contract_info"
         response = requests.get(url)
         data = response.json()
@@ -168,7 +177,9 @@ class Command(BaseCommand):
         for symbol in data['data']:
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
-                exchange
+                exchange,
+                min_order = float(symbol['size']) * float(symbol['tradeMinQuantity']),
+                coin_count = symbol['size']
             )
     
     def get_wallet_pairs_ourbit(self, exchange: Exchange) -> None:
@@ -205,7 +216,9 @@ class Command(BaseCommand):
             if symbol['ctType'] == 'linear' and symbol['settleCcy'] == 'USDT':
                 self.create_pair_exchange_mapping(
                     symbol['instId'],
-                    exchange
+                    exchange,
+                    min_order = float(symbol['ctVal']) * float(symbol['minSz']),
+                    coin_count = float(symbol['ctVal'])
                 )
 
     def shibari(self):
