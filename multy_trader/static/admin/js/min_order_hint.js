@@ -1,6 +1,5 @@
 (function($) {
     function init() {
-        console.log("🚀 Min order hint initialized");
         
         function getSelectedExchanges() {
             var selected = [];
@@ -13,13 +12,11 @@
         function fetchMinOrder() {
             var walletPair = $('#id_wallet_pair').val();
             var exchangeIds = getSelectedExchanges();
-            
-            console.log("🔄 Fetching min order for:", {walletPair, exchangeIds});
-            
+                        
             var $hint = $('#min-order-hint');
             if (!$hint.length) return;
             
-            if (!walletPair) {
+            if (!walletPair || walletPair === "") {
                 $hint.html('💡 Выберите валютную пару');
                 return;
             }
@@ -43,7 +40,6 @@
                 }),
                 contentType: 'application/json',
                 success: function(response) {
-                    console.log("✅ AJAX response:", response);
                     if (response.success) {
                         $hint.html(
                             '✅ Минимальное количество монет: <strong>' + response.min_order  + '</strong>'
@@ -53,7 +49,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error("❌ AJAX error:", error);
                     $hint.html('❌ Ошибка: ' + error);
                 }
             });
@@ -72,47 +67,39 @@
             }
         }
         
-        function addManualButton() {
-            if ($('#fetch-min-order-btn').length) return;
-            
-            var $profitField = $('.field-profit').first();
-            if ($profitField.length) {
-                $profitField.append(
-                    '<div style="margin-top: 5px;">' +
-                    '<button type="button" id="fetch-min-order-btn" style="padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer;">' +
-                    '🔄 Получить минимальное количество монет' +
-                    '</button>' +
-                    '</div>'
-                );
-                
-                $('#fetch-min-order-btn').on('click', function() {
-                    console.log("🖱️ Manual button clicked");
-                    fetchMinOrder();
-                });
-            }
-        }
-        
-        function waitForFields() {
-            console.log("⏳ Waiting for fields...");
+        function waitForElements() {
             
             var checkExist = setInterval(function() {
                 if ($('.field-profit').length && $('#id_wallet_pair').length) {
-                    console.log("✅ Fields found");
                     clearInterval(checkExist);
                     
                     addHint();
-                    addManualButton();
                     
-                    // Пробуем и change, но теперь есть кнопка как запасной вариант
-                    $('#id_wallet_pair').on('change', function() {
-                        console.log("💰 Wallet pair changed");
-                        fetchMinOrder();
-                    });
+                    var $select = $('#id_wallet_pair');
+                    var lastValue = $select.val();
+                    
+                    // ПРОВЕРЯЕМ ЗНАЧЕНИЕ КАЖДУЮ СЕКУНДУ (просто и надежно)
+                    setInterval(function() {
+                        var currentValue = $select.val();
+                        if (currentValue !== lastValue) {
+                            lastValue = currentValue;
+                            if (currentValue && currentValue !== "") {
+                                fetchMinOrder();
+                            } else {
+                                $('#min-order-hint').html('💡 Выберите валютную пару');
+                            }
+                        }
+                    }, 500);
+                    
+                    // Если уже выбрано при загрузке
+                    if (lastValue && lastValue !== "") {
+                        setTimeout(fetchMinOrder, 500);
+                    }
                 }
             }, 100);
         }
         
-        waitForFields();
+        waitForElements();
     }
     
     if (document.readyState === 'loading') {
