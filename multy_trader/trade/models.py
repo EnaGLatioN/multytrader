@@ -10,8 +10,10 @@ from django.db.models import (
     ForeignKey,
     CASCADE,
     BigIntegerField,
-    BooleanField
+    BooleanField,
+    TextField
 )
+from django.conf import settings
 from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair
 
@@ -89,12 +91,6 @@ class Entry(Model):
         help_text="Дата создания",
         verbose_name="Дата создания",
     )
-    chat_id = BigIntegerField(
-        verbose_name="Чат айди в тг",
-        help_text="Введите чат айди в тг если хотите получать уведомления об этом входе",
-        blank=True,
-        null=True,
-    )
     is_active = BooleanField(
         default=True,
         help_text="Активен ли вход",
@@ -106,6 +102,19 @@ class Entry(Model):
         verbose_name="Реверс",
         db_default=False
     )
+    message_id = BigIntegerField(
+        null=True, 
+        blank=True
+    )
+    trader = ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=CASCADE, 
+        related_name='entries',
+        verbose_name='Трейдер',
+        null=True, 
+        blank=True
+    )
+
     class Meta:
         db_table = "entry"
         verbose_name = "Вход"
@@ -114,6 +123,10 @@ class Entry(Model):
 
     def __str__(self):
         return f'{self.alias}' if self.alias else f'{self.id}'
+    
+    def update_status(self, status):
+        self.status = status
+        self.save()
 
 
 class Order(Model):
@@ -192,3 +205,30 @@ class Process(Model):
         help_text="ID ENTRY",
         verbose_name="ID ENTRY",
     )
+
+
+class Error(Model):
+    id = UUIDField(
+        default=uuid4,
+        help_text="Уникальный идентификатор ",
+        primary_key=True,
+        verbose_name="ID",
+    )
+    traceback = TextField(
+        help_text="Текст ошибки",
+        verbose_name="Текст ошибки"
+    )
+    order = ForeignKey(
+        Order,
+        on_delete=CASCADE,
+        related_name="errors",
+        verbose_name="Ордер",
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        help_text="Дата создания",
+        verbose_name="Дата создания",
+    )
+    class Meta:
+        verbose_name = "Ошибка ордера"
+        ordering = ['-created_at'] 

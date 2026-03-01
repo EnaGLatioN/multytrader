@@ -187,7 +187,7 @@ class Command(BaseCommand):
         Достает валютные пары с биржи OURBIT.
         """
 
-        url = "https://futures.ourbit.com/api/v1/contract/ticker?"
+        url = "https://futures.ourbit.com/api/v1/contract/ticker"
         response = requests.get(url)
         data = response.json()
     

@@ -103,6 +103,7 @@ class EntryAdmin(ModelAdmin):
     )
     list_display = (
         'alias',
+        'trader',
         'profit', 
         'shoulder',
         'exit_course', 
@@ -111,7 +112,7 @@ class EntryAdmin(ModelAdmin):
         'get_exchanges_display',
         'status'
     )
-    list_filter = ('status',)
+    list_filter = ('status','trader')
     
     class Media:
         js = (
@@ -135,7 +136,14 @@ class EntryAdmin(ModelAdmin):
 
     def get_inlines(self, request, obj):
         inlines = []
-        exchange_ids = request.session.get('selected_exchanges', [])
+        if obj:
+            exchange_ids = list(Order.objects.filter(
+                entry=obj
+            ).values_list(
+                'exchange_account__exchange__id', flat=True
+            ).distinct())
+        else:
+            exchange_ids = request.session.get('selected_exchanges', [])
         
         if exchange_ids:
             exchanges = Exchange.objects.filter(id__in=exchange_ids)
@@ -151,20 +159,30 @@ class EntryAdmin(ModelAdmin):
                     )
                 inline_class = create_inline_class(exchange)
                 inlines.append(inline_class)
-        
+       
         return inlines
         
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         form = self.get_form(request, object_id)
-        
-        if 'selected_exchanges' in request.session:
-            exchange_ids = request.session['selected_exchanges']
-            if hasattr(form, 'base_fields') and 'exchanges' in form.base_fields:
-                form.base_fields['exchanges'].initial = Exchange.objects.filter(id__in=exchange_ids)
-        
+        exchange_ids = []
+        if object_id:
+            obj = self.get_object(request, object_id)
+            if obj:
+                exchange_ids = list(Order.objects.filter(entry=obj)
+                    .values_list('exchange_account__exchange_id', flat=True)
+                    .distinct())
+    
+        if not exchange_ids:
+            session_exchanges = request.session.get('selected_exchanges')
+            if session_exchanges is not None:
+                exchange_ids = session_exchanges
+
+        if 'exchanges' in form.base_fields:
+            form.base_fields['exchanges'].initial = Exchange.objects.filter(id__in=exchange_ids)
+    
         extra_context = extra_context or {}
         extra_context['form'] = form
-        
+    
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -205,8 +223,6 @@ class EntryAdmin(ModelAdmin):
             entry = Entry.objects.get(id = instance.id)
             old_is_active = entry.is_active
             new_is_active = form.cleaned_data['is_active']
-            old_receive_notifications = entry.chat_id
-            new_receive_notifications = form.cleaned_data.get('receive_notifications', False)
             
             if old_is_active and not new_is_active: #  изменили статус на не актив
                 self._delete_process(request, form.instance) # тушим процесс
@@ -216,26 +232,20 @@ class EntryAdmin(ModelAdmin):
                 self._create_process(str(form.instance.id)) # создаем процесс
                 instance.status = EntryStatusType.WAIT # поменяли на стутс WAIT
             
-            if old_receive_notifications and not new_receive_notifications: #если были включены а щас нет
-                instance.chat_id = None
-            elif new_receive_notifications and not old_receive_notifications: #если были выключены а щас включены
-                instance.chat_id = request.user.chat_id
         else:
             if not new_is_active:
                 instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED
-
-            receive_notifications = form.cleaned_data.get('receive_notifications', False)
-            if receive_notifications:
-                if chat_id := request.user.chat_id:
-                    instance.chat_id = chat_id
-                else:
-                    warning(request, f"Добавьте чат айди в разделе 'Пользователи', чтобы получать уведомления в Telegram")
         return instance
     
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         if not change and form.instance.is_active:
             self._create_process(str(form.instance.id))
+    
+    def save_model(self, request, obj, form, change):
+        if not change: 
+            obj.trader = request.user
+        super().save_model(request, obj, form, change)
     
     def delete_model(self, request, obj):
         self._delete_process(request, obj)
@@ -270,7 +280,7 @@ class EntryAdmin(ModelAdmin):
 
         with open("process.log", "a") as log_file:
             active_process = subprocess.Popen(
-                ["poetry", "run", "python", config("MANAGE_DIR", cast=str, default="manage.py"), "start_entry", # poetry run python -m manage start_entry --entry_id
+                ["poetry", "run", "python", config("MANAGE_DIR", cast=str, default="manage.py"), "dealer", # poetry run python -m manage start_entry --entry_id
                 "--entry_id", entry_id,
                 ],
                 stdout=log_file,
