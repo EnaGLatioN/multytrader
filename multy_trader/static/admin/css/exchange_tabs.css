@@ -1,0 +1,89 @@
+/* Стили для вкладок бирж */
+.exchange-tabs {
+    margin: 20px 0;
+    border-bottom: 2px solid #79aec8;
+}
+
+.exchange-tab {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    margin-right: 5px;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    font-weight: bold;
+    color: #666;
+}
+
+.exchange-tab.active {
+    background: #79aec8;
+    color: white;
+    border-color: #79aec8;
+}
+
+.exchange-tab-content {
+    display: none;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-top: none;
+    background: white;
+    margin-bottom: 20px;
+}
+
+.exchange-tab-content.active {
+    display: block;
+}
+
+/* Стили для таблиц ордеров */
+.exchange-orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.exchange-orders-table th {
+    background: #f8f8f8;
+    padding: 8px;
+    text-align: left;
+    font-weight: bold;
+    border: 1px solid #ddd;
+}
+
+.exchange-orders-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+.exchange-orders-table input,
+.exchange-orders-table select {
+    width: 100%;
+    padding: 4px;
+}
+
+/* Кнопка добавления ордера */
+.add-order-btn {
+    background: #79aec8;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.add-order-btn:hover {
+    background: #609ab6;
+}
+
+/* Заголовок биржи */
+.exchange-header {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 0;
+    color: #447e9b;
+    border-bottom: 1px solid #79aec8;
+    margin-bottom: 15px;
+}
