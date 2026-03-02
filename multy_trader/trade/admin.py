@@ -21,23 +21,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 log = logging.getLogger(__name__)
 
 
-class OrderAdmin(ModelAdmin):
-    fields = ('trade_type', 'entry', 'exchange_account', 'proxy')
-    list_display = ('entry', 'trade_type', 'exchange_account', 'proxy', 'status')
-
-
 class OrderInline(TabularInline):
     model = Order
-    extra = 1
-    fields = ('exchange_account', 'trade_type', 'proxy')
-    
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'exchange_account' and not request.user.is_superuser:
-            kwargs["queryset"] = ExchangeAccount.objects.filter(user_exchange_account = request.user)
-        if db_field.name == 'proxy':
-            kwargs["queryset"] = Proxy.objects.filter(is_active = True)
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    extra = 0
+    fields = ('exchange_account', 'proxy', 'trade_type', 'id')
+    readonly_fields = ('id',)
+    verbose_name = "Все ордера входа"
+    verbose_name_plural = "Список всех ордеров"
 
 
 class DynamicOrderInline(TabularInline):
@@ -120,7 +110,7 @@ class EntryAdmin(ModelAdmin):
             'admin/js/dynamic_exchange_inlines.js',
             'admin/js/min_order_hint.js'
         )
-    
+
     def get_exchanges_display(self, obj):
         """Отображаем выбранные биржи"""
         if obj.pk:
@@ -137,13 +127,9 @@ class EntryAdmin(ModelAdmin):
     def get_inlines(self, request, obj):
         inlines = []
         if obj:
-            exchange_ids = list(Order.objects.filter(
-                entry=obj
-            ).values_list(
-                'exchange_account__exchange__id', flat=True
-            ).distinct())
-        else:
-            exchange_ids = request.session.get('selected_exchanges', [])
+            return [OrderInline]
+
+        exchange_ids = request.session.get('selected_exchanges', [])
         
         if exchange_ids:
             exchanges = Exchange.objects.filter(id__in=exchange_ids)
@@ -162,28 +148,22 @@ class EntryAdmin(ModelAdmin):
        
         return inlines
         
-    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
-        form = self.get_form(request, object_id)
-        exchange_ids = []
-        if object_id:
-            obj = self.get_object(request, object_id)
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if request.method == 'GET':
+            exchange_ids = []
             if obj:
                 exchange_ids = list(Order.objects.filter(entry=obj)
                     .values_list('exchange_account__exchange_id', flat=True)
                     .distinct())
-    
-        if not exchange_ids:
-            session_exchanges = request.session.get('selected_exchanges')
-            if session_exchanges is not None:
-                exchange_ids = session_exchanges
+            
+            if not exchange_ids:
+                exchange_ids = request.session.get('selected_exchanges', [])
 
-        if 'exchanges' in form.base_fields:
-            form.base_fields['exchanges'].initial = Exchange.objects.filter(id__in=exchange_ids)
-    
-        extra_context = extra_context or {}
-        extra_context['form'] = form
-    
-        return super().changeform_view(request, object_id, form_url, extra_context)
+            if 'exchanges' in form.base_fields:
+                form.base_fields['exchanges'].initial = Exchange.objects.filter(id__in=exchange_ids)
+        
+        return form
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'wallet_pair':
@@ -217,6 +197,7 @@ class EntryAdmin(ModelAdmin):
         return queryset.filter(order_entry__exchange_account__user_exchange_account=request.user).distinct()
     
     def save_form(self, request, form, change):
+        form.cleaned_data.pop('exchanges', None)
         instance = super().save_form(request, form, change)
         new_is_active = form.cleaned_data['is_active']
         if change:
@@ -245,6 +226,7 @@ class EntryAdmin(ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change: 
             obj.trader = request.user
+            request.session['selected_exchanges'] = []
         super().save_model(request, obj, form, change)
     
     def delete_model(self, request, obj):
@@ -294,4 +276,3 @@ class EntryAdmin(ModelAdmin):
 
 
 admin.site.register(Entry, EntryAdmin)
-admin.site.register(Order, OrderAdmin)
