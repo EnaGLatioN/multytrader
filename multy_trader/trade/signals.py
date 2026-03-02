@@ -8,4 +8,5 @@ from trade.bot_new import first_notification
 def check_update_status(sender, instance, **kwargs):
     if instance.status == 'WAIT':
         result = first_notification(instance)
-        instance.message_id = result.get('message_id')
+        if result:
+            instance.message_id = result.get('message_id')
