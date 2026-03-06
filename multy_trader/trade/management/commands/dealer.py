@@ -81,13 +81,12 @@ class Command(BaseCommand):
             if entry.reverse:
                 return getter_course <= exit_course
             return getter_course >= exit_course
-    
+           
     def reverse_price_checker(self, price_checker):
         reverse_price_checker = {}
         reverse_price_checker['SHORT'] = price_checker.get('LONG')
         reverse_price_checker['LONG'] = price_checker.get('SHORT')
         return reverse_price_checker
-
 
     def close_order(self, price_checker, open_orders, entry, flag = True):
         while flag:
@@ -110,5 +109,4 @@ class Command(BaseCommand):
     def trade(self, entry, flag = True):
         if entry.status == "WAIT":
             self.open_order(entry)
-           
-       
+                  

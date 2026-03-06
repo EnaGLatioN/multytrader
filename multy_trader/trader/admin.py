@@ -2,10 +2,10 @@ from django.contrib.admin import AdminSite, ModelAdmin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
-from django.contrib import admin
+from django.contrib import admin, messages
 from .models import CustomUser, Proxy, ExchangeAccount
 from django.contrib.auth import get_user_model
-
+from trader.services import check_proxy
 
 class TradeAdminSite(AdminSite):
     site_header = "MultyTrade Admin"
@@ -38,6 +38,15 @@ class CustomProxy(ModelAdmin):
     list_display = ('ip_address', 'port', 'is_active')
     search_fields = ('ip_address',)
     search_help_text = 'Введите IP-адрес для поиска'
+
+    def save_model(self, request, obj, form, change):
+        if check_proxy(obj.get_proxies()):
+            messages.add_message(request, messages.INFO, "Прокси прошел проверку и был сохранен со статусом 'Активен'")
+            obj.is_active = True
+        else:
+            messages.add_message(request, messages.ERROR, "Прокси не прошел проверку, статус изменен на 'Не активен'")
+            obj.is_active = False
+        super().save_model(request, obj, form, change)
 
 
 class CustomExchangeAccount(ModelAdmin):
