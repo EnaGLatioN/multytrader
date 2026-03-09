@@ -1,6 +1,7 @@
 import os
 import time
 import sys
+import signal
 import django
 import logging
 from django.core.management.base import BaseCommand
@@ -21,6 +22,12 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.open_orders = None
+        
+        signal.signal(signal.SIGTERM, self.handle_exit_signal)
 
     def add_arguments(self, parser):
         parser.add_argument('--entry_id',  type=str, nargs='?', help='id входа ордера')
@@ -28,6 +35,19 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.trade(self.get_entry(options.get("entry_id")))
     
+    def handle_exit_signal(self, signum, frame):
+        logger.info("Получен сигнал на остановку процесса...")
+        if self.open_orders:
+            logger.info("Обнаружены открытые ордера, закрываю перед выходом...")
+            closed_orders(self.open_orders, self.entry)
+        else:
+            logger.info("Открытых ордеров нет...")
+        logger.info("Процесс плавно завершен.")
+        sys.exit(0)
+    
+    def forced_closure(self, open_orders, entry):
+        closed_orders(open_orders, entry)
+
     def get_entry(self, entry_id):
         return Entry.objects.prefetch_related("wallet_pair__exchange_mappings").get(id = entry_id)
 
@@ -101,12 +121,18 @@ class Command(BaseCommand):
             price_checker, ready_order_for_send = self.get_price_checker(entry)
             getter_course = self.getter_course(price_checker)
             # ГДЕ-ТО НУЖНО ДОБАВИТЬ ПРОВЕРКУ НА ВАЛЮТНУЮ ПАРУ
+            logger.info(getter_course)
+            logger.info(self.checking_additional_conditions_for_open(entry, getter_course))
+            logger.info('-------------------------------------------')
             if self.checking_additional_conditions_for_open(entry, getter_course): ###
                 flag = False
                 if open_orders := opening_orders(ready_order_for_send, entry):
-                    self.close_order(price_checker, open_orders, entry)
+                    self.open_orders = open_orders
+                    if closed := self.close_order(price_checker, open_orders, entry):
+                        self.open_orders = None
 
     def trade(self, entry, flag = True):
+        logger.info('START')
         if entry.status == "WAIT":
             self.open_order(entry)
                   

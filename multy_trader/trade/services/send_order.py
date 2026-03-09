@@ -100,7 +100,6 @@ def opening_orders(ready_order_for_send, entry):
             update_status_entry(entry, "FAILED")
             # Отправить уведомление
             send_reply_message(entry, 'Открытые ордера на лонг и шорт успешно были закрыты')
-
     
     else: # ошибки открытия лонгов
 
@@ -125,3 +124,4 @@ def closed_orders(open_orders, entry):
     else:
         update_status_entry(entry, "FAILED")
         send_reply_message(entry, 'Ошибка закрытия ордеров')
+    return status

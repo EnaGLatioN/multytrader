@@ -207,11 +207,11 @@ class EntryAdmin(ModelAdmin):
             
             if old_is_active and not new_is_active: #  изменили статус на не актив
                 self._delete_process(request, form.instance) # тушим процесс
-                instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED
+                instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED !!!
         
             elif new_is_active and not old_is_active: #  изменили статус на актив
-                self._create_process(str(form.instance.id)) # создаем процесс
                 instance.status = EntryStatusType.WAIT # поменяли на стутс WAIT
+                self._create_process(str(form.instance.id)) # создаем процесс
             
         else:
             if not new_is_active:
