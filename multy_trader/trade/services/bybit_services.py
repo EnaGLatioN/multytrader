@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def bybit_buy_futures_contract(entry, order):
+def bybit_buy_futures_contract(ready_order):
 
     """
     Покупка фьючерса на Bybit mainnet
@@ -24,14 +24,13 @@ def bybit_buy_futures_contract(entry, order):
     :param reduce_only: Только уменьшение позиции
     :return: Результат ордера
     """
-    exchange_account = order.exchange_account
-    proxy = order.proxy
-
+    proxy = ready_order.proxy
+    wallet_pair = ready_order.wallet_pair.local_name
     try:
         # Инициализация для mainnet
         exchange = ccxt.bybit({
-            'apiKey': exchange_account.api_key,
-            'secret': exchange_account.secret_key,
+            'apiKey': ready_order.api_key,
+            'secret': ready_order.secret_key,
             'sandbox': False,  # FALSE для mainnet!
             'proxies': proxy.get_proxies() if proxy else None,
             'options': {
@@ -42,21 +41,19 @@ def bybit_buy_futures_contract(entry, order):
         logger.debug(f"Конфигурация прокси: {exchange.proxies}")
         # logger.info("🔗 Подключаемся к Bybit mainnet...")
 
-        wallet_pair, _ = get_wallet_pair(entry.wallet_pair, exchange_account.exchange.name)
-
         try:
-            exchange.set_leverage(entry.shoulder, wallet_pair)
-            logger.info(f"⚖️ Плечо установлено: {entry.shoulder}x")
+            exchange.set_leverage(ready_order.shoulder, wallet_pair)
+            logger.info(f"⚖️ Плечо установлено: {ready_order.shoulder}x")
         except Exception as e:
             logger.warning(f"Не удалось установить плечо: {e}")
 
         print("Q1"*50)
-        print(entry.profit)
+        print(ready_order.profit)
         order_params = {
             'symbol': wallet_pair,
             'type': 'market',
-            'side': 'buy' if order.trade_type == TradeType.LONG else 'sell',
-            'amount': entry.profit,
+            'side': 'buy' if ready_order.trade_type == TradeType.LONG else 'sell',
+            'amount': ready_order.profit,
             'params': {
                 'reduceOnly': False,
             }
@@ -66,9 +63,10 @@ def bybit_buy_futures_contract(entry, order):
         order_ex = exchange.create_order(**order_params)
         msg = f"✅ Ордер создан успешно! ID: {order_ex['id']}"
         logger.info(msg)
+        order = Order.objects.get(id=ready_order.id)
         order.ex_order_id = order_ex['id'] if order_ex['id'] else None
         order.save()
-        return {'success': True, 'result': msg, 'order': order}
+        return {'success': True, 'result': msg, 'order': ready_order}
 
 
     except ccxt.AuthenticationError as e:
@@ -78,17 +76,17 @@ def bybit_buy_futures_contract(entry, order):
         error_msg += "\n3. Нет ограничений по IP"
         error_msg += f"\nДетали: {e}"
         logger.error(error_msg)
-        return {'success': False, 'error': error_msg, 'order': order}
+        return {'success': False, 'error': error_msg, 'order': ready_order}
 
     except ccxt.InsufficientFunds as e:
         error_msg = f"❌ Недостаточно средств: {e}"
         logger.error(error_msg)
-        return {'success': False, 'error': error_msg, 'order': order}
+        return {'success': False, 'error': error_msg, 'order': ready_order}
 
     except Exception as e:
         error_msg = f"❌ Ошибка: {e}"
         logger.error(error_msg)
-        return {'success': False, 'error': error_msg, 'order': order}
+        return {'success': False, 'error': error_msg, 'order': ready_order}
 
 
 def get_balance_mainnet(api_key: str, api_secret: str):

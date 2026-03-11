@@ -7,7 +7,3 @@ def check_proxy(proxies):
         return response.status_code == 200
     except:
         return False
-
-
-def check_exchange_account():
-    ...

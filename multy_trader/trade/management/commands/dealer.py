@@ -8,7 +8,6 @@ from django.core.management.base import BaseCommand
 from collections import defaultdict
 from trade.models import Entry
 from exchange.models import Exchange
-from trade.bot import notification_order
 from trade.services.price_checker import PriceChecker, PriceCheckerFactory
 from trade.services.ready_order import ReadyOrder, ReadyOrderFactory
 from trade.services.send_order import opening_orders, closed_orders
@@ -133,6 +132,5 @@ class Command(BaseCommand):
 
     def trade(self, entry, flag = True):
         logger.info('START')
-        if entry.status == "WAIT":
-            self.open_order(entry)
+        self.open_order(entry)
                   

@@ -6,10 +6,11 @@ from .forms import WalletPairAdminForm
 
 class ExchangeAdmin(ModelAdmin):
     search_fields = ('name',)
+    list_display = ('name', 'is_active')
     search_help_text = 'Введите название биржи для поиска'
     fieldsets = (
         ("Основная информация", {
-            "fields": ("name",)
+            "fields": ("name", "is_active")
             }
         ),
         ("Системная информация", {

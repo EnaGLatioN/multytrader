@@ -60,8 +60,7 @@ class Entry(Model):
     )
     shoulder = PositiveIntegerField(
         help_text="Плечо",
-        verbose_name="Плечо",
-        blank = True
+        verbose_name="Плечо"
     )
     status = CharField(
         choices=EntryStatusType.choices,

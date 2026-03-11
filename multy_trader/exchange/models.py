@@ -92,6 +92,11 @@ class Exchange(Model):
         help_text="Дата создания",
         verbose_name="Дата создания",
     )
+    is_active = BooleanField(
+        default=True,
+        help_text="Активна ли биржа",
+        verbose_name="Активность"
+    )
     class Meta:
         db_table = "exchange"
         verbose_name = "Биржа"

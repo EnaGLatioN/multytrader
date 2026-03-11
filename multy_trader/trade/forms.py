@@ -10,7 +10,7 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 
 class EntryForm(ModelForm):
     exchanges = ModelMultipleChoiceField(
-        queryset=Exchange.objects.all(),
+        queryset=Exchange.objects.filter(is_active=True),
         widget=FilteredSelectMultiple("биржи", is_stacked=False),
         required=False,
         label="Выберите биржи для скальпинга"

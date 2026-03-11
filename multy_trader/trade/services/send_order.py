@@ -1,21 +1,22 @@
 from concurrent.futures import ThreadPoolExecutor
-from .gate_services_new import gate_buy_futures_contract
+from .gate_services import gate_buy_futures_contract
 from .mexc_services import mexc_buy_futures_contract
-from .bybit_services_new import bybit_buy_futures_contract
+from .bybit_services import bybit_buy_futures_contract
+from .binance import binance_futures_trade
 from trade.models import Error, Order
-from trade.bot_new import send_reply_message
+from trade.bot import send_reply_message
 
 
 exchanges = {
-    'MEXC': mexc_buy_futures_contract,
+    #'MEXC': mexc_buy_futures_contract,
     'GATE': gate_buy_futures_contract,
     "BYBIT": bybit_buy_futures_contract,
-    'KUCOIN': gate_buy_futures_contract,
-    'BINANCE': gate_buy_futures_contract,
-    'HTX': gate_buy_futures_contract,
-    'BINGX': gate_buy_futures_contract,
-    'OURBIT': gate_buy_futures_contract,
-    'OKX': gate_buy_futures_contract
+    #'KUCOIN': gate_buy_futures_contract,
+    'BINANCE': binance_futures_trade,
+    #'HTX': gate_buy_futures_contract,
+    #'BINGX': gate_buy_futures_contract,
+    #'OURBIT': gate_buy_futures_contract,
+    #'OKX': gate_buy_futures_contract
 }
 
 
@@ -73,6 +74,7 @@ def update_status_entry(entry, status):
     """Обновляет статус входа"""
 
     entry.status = status
+    entry.is_active = True if status in ['ACTIVE', 'WAIT'] else False
     entry.save()
 
 

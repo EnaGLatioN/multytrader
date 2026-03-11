@@ -12,7 +12,6 @@ from trader.models import ExchangeAccount, Proxy
 from exchange.models import WalletPair, Exchange, PairExchangeMapping
 import subprocess
 from .forms import EntryForm
-from trade.bot import notification
 from decouple import config
 from django.db.models import Count
 
@@ -28,7 +27,6 @@ class OrderInline(TabularInline):
     readonly_fields = ('id',)
     verbose_name = "Все ордера входа"
     verbose_name_plural = "Список всех ордеров"
-
 
 class DynamicOrderInline(TabularInline):
     """Инлайн для конкретной биржи"""

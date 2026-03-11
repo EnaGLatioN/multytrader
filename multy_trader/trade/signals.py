@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from trade.models import Entry
-from trade.bot_new import first_notification
+from trade.bot import first_notification
 
 
 @receiver(pre_save, sender=Entry)
