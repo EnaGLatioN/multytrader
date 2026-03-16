@@ -121,6 +121,7 @@ class Command(BaseCommand):
             getter_course = self.getter_course(price_checker)
             # ГДЕ-ТО НУЖНО ДОБАВИТЬ ПРОВЕРКУ НА ВАЛЮТНУЮ ПАРУ
             logger.info(getter_course)
+            logger.info(entry.entry_course)
             logger.info(self.checking_additional_conditions_for_open(entry, getter_course))
             logger.info('-------------------------------------------')
             if self.checking_additional_conditions_for_open(entry, getter_course): ###

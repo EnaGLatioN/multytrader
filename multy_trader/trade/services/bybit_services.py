@@ -56,6 +56,7 @@ def bybit_buy_futures_contract(ready_order):
             'amount': ready_order.profit,
             'params': {
                 'reduceOnly': False,
+                'positionIdx': 0
             }
         }
         # logger.info(f"🛒 Создаем ордер: {order_params}")
@@ -112,3 +113,31 @@ ERROR:__main__:❌ Недостаточно средств: bybit {"retCode":110
 Баланс: {'USDC': 0.00257, 'ARB': 0.00012, 'ETH': 5.12e-06, 'USDT': 5.641e-05, 'TAIKO': 0.005}
     
     """
+
+def get_bybit_balance(ready_order):
+    proxy = ready_order.proxy
+    
+    exchange = ccxt.bybit({
+        'apiKey': ready_order.api_key,
+        'secret': ready_order.secret_key,
+        'proxies': proxy.get_proxies() if proxy else None,
+        'options': {
+            'defaultType': 'linear', # для USDT-фьючерсов
+        },
+    })
+
+    try:
+        balance = exchange.fetch_balance() 
+        
+        usdt_info = balance.get('USDT', {})
+        
+        usdt_free = usdt_info.get('free', 0)
+        usdt_total = usdt_info.get('total', 0)
+        
+        logger.info(f"💰 Баланс USDT: Доступно: {usdt_free}, Всего: {usdt_total}")
+        return usdt_free, usdt_total
+
+    except Exception as e:
+        logger.error(f"❌ Не удалось получить баланс через прокси: {e}")
+        return "Не удалось узнать баланс аккаунта"
+
