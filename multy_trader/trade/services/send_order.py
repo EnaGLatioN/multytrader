@@ -3,6 +3,7 @@ from .gate_services import gate_buy_futures_contract
 from .mexc_services import mexc_buy_futures_contract
 from .bybit_services import bybit_buy_futures_contract
 from .binance import binance_futures_trade
+from .okx import okx_futures_trade
 from trade.models import Error, Order
 from trade.bot import send_reply_message
 
@@ -16,7 +17,7 @@ exchanges = {
     #'HTX': gate_buy_futures_contract,
     #'BINGX': gate_buy_futures_contract,
     #'OURBIT': gate_buy_futures_contract,
-    #'OKX': gate_buy_futures_contract
+    'OKX': okx_futures_trade
 }
 
 
@@ -72,7 +73,6 @@ def change_trade_type(success_order):
 
 def update_status_entry(entry, status):
     """Обновляет статус входа"""
-
     entry.status = status
     entry.is_active = True if status in ['ACTIVE', 'WAIT'] else False
     entry.save()
@@ -104,7 +104,6 @@ def opening_orders(ready_order_for_send, entry):
             send_reply_message(entry, 'Открытые ордера на лонг и шорт успешно были закрыты')
     
     else: # ошибки открытия лонгов
-
         if success_long_order: # Закрыть открывшиеся лонги если есть + отправить сообщение
             reverse_order = change_trade_type(success_long_order)
             futures = send_order_to_exchange_api(reverse_order, exchanges)

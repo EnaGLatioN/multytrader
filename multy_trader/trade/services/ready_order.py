@@ -11,12 +11,12 @@ from exchange.models import Exchange
 class ReadyOrder:
     id: uuid4
     wallet_pair: str
-    #coin_count: float
     proxy: str
     profit: float
     shoulder: int
     api_key: str
     secret_key: str
+    passphrase: str
     exchange_name: str
     trade_type: str
 
@@ -33,6 +33,7 @@ class ReadyOrderFactory():
             shoulder = entry.shoulder,
             api_key = order.exchange_account.api_key,
             secret_key = order.exchange_account.secret_key,
+            passphrase = order.exchange_account.passphrase,
             exchange_name = exchange.name,
             trade_type = order.trade_type
         )

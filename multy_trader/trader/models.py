@@ -115,6 +115,13 @@ class ExchangeAccount(Model):
         help_text="Секретный ключ",
         verbose_name="Секретный ключ",
     )
+    passphrase = CharField(
+        blank=True, 
+        null=True,
+        help_text="Проверочный код",
+        verbose_name="Пасс-фраза",
+        max_length=128
+    )
     login = CharField(
         help_text="Логин для аутентификации",
         verbose_name="Логин",

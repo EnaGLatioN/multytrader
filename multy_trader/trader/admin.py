@@ -50,7 +50,7 @@ class CustomProxy(ModelAdmin):
 
 
 class CustomExchangeAccount(ModelAdmin):
-    fields = ('login', 'password', 'api_key', 'secret_key','exchange', 'is_active')
+    fields = ('login', 'password', 'api_key', 'secret_key', 'passphrase','exchange', 'is_active')
     list_display = ('login', 'is_active')
     search_fields = ('login',)
     search_help_text = 'Введите логин'
