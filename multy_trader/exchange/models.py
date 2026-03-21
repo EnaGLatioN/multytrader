@@ -139,6 +139,11 @@ class PairExchangeMapping(Model):
         verbose_name="Минимальное количество монет для покупки",
         default = 0
     )
+    step = FloatField(
+        help_text="Минимальный шаг изменения ордера (в монетах)",
+        verbose_name="Шаг",
+        default=0
+    )
     normalized_name = CharField(
         max_length=50, 
         db_index=True
