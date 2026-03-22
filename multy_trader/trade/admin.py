@@ -101,6 +101,7 @@ class EntryAdmin(ModelAdmin):
         'status'
     )
     list_filter = ('status','trader')
+    actions = ['action_closed']
     
     class Media:
         js = (
@@ -108,6 +109,12 @@ class EntryAdmin(ModelAdmin):
             'admin/js/dynamic_exchange_inlines.js',
             'admin/js/min_order_hint.js'
         )
+
+    @admin.action(description="Закрыть позицию")
+    def action_closed(self, request, queryset):
+        for entry in queryset:
+            self._delete_process(request, entry)
+        queryset.update(status='STOPPED', is_active=False)
 
     def get_exchanges_display(self, obj):
         """Отображаем выбранные биржи"""
