@@ -110,7 +110,7 @@ class Command(BaseCommand):
 
     def close_order(self, open_orders, entry, flag = True):
         while flag:
-            entry.refresh_from_db()
+            #entry.refresh_from_db()
             price_checker, _ = self.get_price_checker(entry)
             reverse_price_checker = self.reverse_price_checker(price_checker)
             getter_course = self.getter_course(reverse_price_checker)
@@ -120,7 +120,7 @@ class Command(BaseCommand):
         
     def open_order(self, entry, flag = True):
         while flag:
-            entry.refresh_from_db()
+            #entry.refresh_from_db()
             price_checker, ready_order_for_send = self.get_price_checker(entry)
             getter_course = self.getter_course(price_checker)
             # ГДЕ-ТО НУЖНО ДОБАВИТЬ ПРОВЕРКУ НА ВАЛЮТНУЮ ПАРУ
