@@ -25,16 +25,25 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.open_orders = None
-        
+        self.entry = None
+
         signal.signal(signal.SIGTERM, self.handle_exit_signal)
+        signal.signal(signal.SIGUSR1, self.handle_update_signal)
 
     def add_arguments(self, parser):
         parser.add_argument('--entry_id',  type=str, nargs='?', help='id входа ордера')
         parser.add_argument('--restart', action='store_true', help='Перезапуск')
 
     def handle(self, *args, **options):
-        self.trade(self.get_entry(options.get("entry_id")), options.get("restart"))
+        entry = self.get_entry(options.get("entry_id"))
+        self.entry = entry 
+        
+        self.trade(self.entry, options.get("restart"))
     
+    def handle_update_signal(self, signum, frame):
+        logger.info("Получен сигнал на обновление...")
+        self.entry.refresh_from_db()
+
     def handle_exit_signal(self, signum, frame):
         logger.info("Получен сигнал на остановку процесса...")
         if self.open_orders:
@@ -110,7 +119,6 @@ class Command(BaseCommand):
 
     def close_order(self, open_orders, entry, flag = True):
         while flag:
-            #entry.refresh_from_db()
             price_checker, _ = self.get_price_checker(entry)
             reverse_price_checker = self.reverse_price_checker(price_checker)
             getter_course = self.getter_course(reverse_price_checker)
@@ -120,7 +128,6 @@ class Command(BaseCommand):
         
     def open_order(self, entry, flag = True):
         while flag:
-            #entry.refresh_from_db()
             price_checker, ready_order_for_send = self.get_price_checker(entry)
             getter_course = self.getter_course(price_checker)
             # ГДЕ-ТО НУЖНО ДОБАВИТЬ ПРОВЕРКУ НА ВАЛЮТНУЮ ПАРУ
@@ -138,12 +145,9 @@ class Command(BaseCommand):
 
     def trade(self, entry, restart):
         logger.info('START')
-        logger.info(f'{restart=}')
         while True:
-            update_status_entry(entry, "COMPLETED")
             success = self.open_order(entry)
             entry.refresh_from_db()
-            logger.info(f'{entry.status}')
             if restart and success and entry.status == 'COMPLETED':
                 logger.info("Сделка завершена")
                 update_status_entry(entry, "WAIT")

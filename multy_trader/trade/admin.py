@@ -203,10 +203,12 @@ class EntryAdmin(ModelAdmin):
             old_is_active = entry.is_active
             new_is_active = form.cleaned_data['is_active']
             
-            if old_is_active and not new_is_active: #  изменили статус на не актив
-                self._delete_process(request, form.instance) # тушим процесс
-                instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED !!!
-        
+            if old_is_active:
+                if not new_is_active: #  изменили статус на не актив
+                    self._delete_process(request, form.instance) # тушим процесс
+                    instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED !!!
+                else:
+                    self._update_process(request, form.instance)
             elif new_is_active and not old_is_active: #  изменили статус на актив
                 instance.status = EntryStatusType.WAIT # поменяли на стутс WAIT
                 self._create_process(str(form.instance.id), form.instance.restart) # создаем процесс
@@ -252,7 +254,17 @@ class EntryAdmin(ModelAdmin):
                 log.error(f"Неизвестная ошибка OSError: {e}")
         except Exception as e:
             log.error(f"delete_model -- trade -- {e}")
-    
+
+    def _update_process(self, request, obj):
+        entry_id = obj.id
+        try:
+            process = Process.objects.get(entry_id=str(entry_id))
+            os.kill(process.pid, signal.SIGUSR1)
+        except Process.DoesNotExist:
+            log.warning(f"Не найден процесс для входа {entry_id}")
+        except Exception as e:
+            log.error(f"update-model -- trade -- {e}")
+
     def _create_process(self, entry_id, restart):
         if Process.objects.filter(entry_id=entry_id).exists():
             log.warning(f"Процесс для входа {entry_id} уже существует")
