@@ -95,6 +95,12 @@ class Entry(Model):
         help_text="Активен ли вход",
         verbose_name="Активность"
     )
+    restart = BooleanField(
+        default=False,
+        help_text="Перезапуск задания при завершении",
+        verbose_name="Перезапуск задания при завершении",
+        db_default=False
+    )
     reverse = BooleanField(
         default=False,
         help_text="Реверс",

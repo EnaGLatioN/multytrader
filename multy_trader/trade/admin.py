@@ -85,7 +85,7 @@ class EntryAdmin(ModelAdmin):
             )
         }),
         ("Дополнительно", {
-            "fields": ("receive_notifications", "is_active", "reverse"),
+            "fields": ("receive_notifications", "is_active", "reverse", "restart"),
             "classes": ("wide",),
         }),
     )
@@ -209,7 +209,7 @@ class EntryAdmin(ModelAdmin):
         
             elif new_is_active and not old_is_active: #  изменили статус на актив
                 instance.status = EntryStatusType.WAIT # поменяли на стутс WAIT
-                self._create_process(str(form.instance.id)) # создаем процесс
+                self._create_process(str(form.instance.id), form.instance.restart) # создаем процесс
             
         else:
             if not new_is_active:
@@ -219,7 +219,7 @@ class EntryAdmin(ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         if not change and form.instance.is_active:
-            self._create_process(str(form.instance.id))
+            self._create_process(str(form.instance.id), form.instance.restart)
     
     def save_model(self, request, obj, form, change):
         if not change: 
@@ -253,16 +253,20 @@ class EntryAdmin(ModelAdmin):
         except Exception as e:
             log.error(f"delete_model -- trade -- {e}")
     
-    def _create_process(self, entry_id):
+    def _create_process(self, entry_id, restart):
         if Process.objects.filter(entry_id=entry_id).exists():
             log.warning(f"Процесс для входа {entry_id} уже существует")
             return
 
+        command = ["poetry", "run", "python", config("MANAGE_DIR", cast=str, default="manage.py"), "dealer", # poetry run python -m manage start_entry --entry_id
+            "--entry_id", entry_id
+        ]
+        if restart:
+            command.append("--restart")
+            
         with open("process.log", "a") as log_file:
             active_process = subprocess.Popen(
-                ["poetry", "run", "python", config("MANAGE_DIR", cast=str, default="manage.py"), "dealer", # poetry run python -m manage start_entry --entry_id
-                "--entry_id", entry_id,
-                ],
+                command,
                 stdout=log_file,
                 stderr=log_file,
                 text=True
