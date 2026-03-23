@@ -64,14 +64,15 @@ class Command(BaseCommand):
         response = api_instance.list_futures_contracts(settle='usdt')
 
         for resp in response:
-            order_size_min = float(resp.order_size_min) if resp.order_size_min else 0
+            order_size_min = float(resp.order_size_min) if resp.order_size_min else 1
             quanto_multiplier = float(resp.quanto_multiplier) if resp.quanto_multiplier else 1
 
             self.create_pair_exchange_mapping(
                 resp.name,
                 exchange,
-                min_order = order_size_min * quanto_multiplier,
-                coin_count = quanto_multiplier
+                min_order=order_size_min * quanto_multiplier,
+                coin_count=quanto_multiplier,
+                step=quanto_multiplier,
             )
 
     def get_wallet_pairs_from_bybit(self, exchange: Exchange) -> None:
@@ -80,17 +81,18 @@ class Command(BaseCommand):
         """
 
         url = "https://api.bybit.com/v5/market/instruments-info"
-        response = requests.get(url, params = {"category": "linear", "limit": 1000})
+        response = requests.get(url, params={"category": "linear", "limit": 1000})
         data = response.json()
-        
+
         response.raise_for_status()
 
         for symbol in data["result"]["list"]:
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
                 exchange,
-                min_order = symbol['lotSizeFilter']['minOrderQty'],
-                coin_count = 0
+                min_order=float(symbol['lotSizeFilter']['minOrderQty']),
+                coin_count=1,
+                step=float(symbol['lotSizeFilter']['qtyStep']),
             )
     
     def get_wallet_pairs_kucoin(self, exchange: Exchange) -> None:
@@ -101,14 +103,16 @@ class Command(BaseCommand):
         url = "https://api-futures.kucoin.com/api/v1/contracts/active"
         response = requests.get(url)
         data = response.json()
-    
+
         response.raise_for_status()
         for symbol in data['data']:
+            multiplier = float(symbol['multiplier'])
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
                 exchange,
-                min_order = symbol['lotSize'] * symbol['multiplier'],
-                coin_count = symbol['multiplier']
+                min_order=float(symbol['lotSize']) * multiplier,
+                coin_count=multiplier,
+                step=multiplier,
             )
     
     def get_wallet_pairs_binance(self, exchange: Exchange) -> None:
@@ -120,15 +124,16 @@ class Command(BaseCommand):
         url = "https://fapi.binance.com/fapi/v1/exchangeInfo"
         response = requests.get(url)
         data = response.json()
-    
+
         response.raise_for_status()
         for symbol in data['symbols']:
-            min_order = [filter['minQty'] for filter in symbol['filters'] if filter['filterType'] == 'LOT_SIZE']
+            lot = next((f for f in symbol['filters'] if f['filterType'] == 'LOT_SIZE'), None)
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
                 exchange,
-                min_order = min_order[0],
-                coin_count = 1
+                min_order=float(lot['minQty']) if lot else 0,
+                coin_count=1,
+                step=float(lot['stepSize']) if lot else 0,
             )
     
     def get_wallet_pairs_htx(self, exchange: Exchange) -> None:
@@ -136,16 +141,20 @@ class Command(BaseCommand):
         Достает валютные пары с биржи HTX.
         symbol['contract_size'] - Стоимость контракта (в USDT за один контракт)
         """
-        
+
         url = "https://api.hbdm.com/linear-swap-api/v1/swap_contract_info"
         response = requests.get(url)
         data = response.json()
-    
+
         response.raise_for_status()
         for symbol in data['data']:
+            contract_size = float(symbol.get('contract_size', 0))
             self.create_pair_exchange_mapping(
                 symbol['contract_code'],
-                exchange
+                exchange,
+                min_order=contract_size,
+                coin_count=contract_size,
+                step=contract_size,
             )
 
     def get_wallet_pairs_mexc(self, exchange: Exchange) -> None:
@@ -156,14 +165,19 @@ class Command(BaseCommand):
         url = "https://api.mexc.com/api/v1/contract/detail"
         response = requests.get(url)
         data = response.json()
-    
+
         response.raise_for_status()
         for symbol in data['data']:
+            contract_size = float(symbol.get('contractSize', 0))
+            min_vol = float(symbol.get('minVol', 1))
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
-                exchange
+                exchange,
+                min_order=min_vol * contract_size,
+                coin_count=contract_size,
+                step=contract_size,
             )
-    
+
     def get_wallet_pairs_bingx(self, exchange: Exchange) -> None:
         """
         Достает валютные пары с биржи BINGX.
@@ -175,11 +189,13 @@ class Command(BaseCommand):
     
         response.raise_for_status()
         for symbol in data['data']:
+            size = float(symbol['size'])
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
                 exchange,
-                min_order = float(symbol['size']) * float(symbol['tradeMinQuantity']),
-                coin_count = symbol['size']
+                min_order=size * float(symbol['tradeMinQuantity']),
+                coin_count=size,
+                step=size,
             )
     
     def get_wallet_pairs_ourbit(self, exchange: Exchange) -> None:
@@ -187,15 +203,20 @@ class Command(BaseCommand):
         Достает валютные пары с биржи OURBIT.
         """
 
-        url = "https://futures.ourbit.com/api/v1/contract/ticker"
+        url = "https://futures.ourbit.com/api/v1/contract/detail"
         response = requests.get(url)
         data = response.json()
-    
+
         response.raise_for_status()
         for symbol in data['data']:
+            contract_size = float(symbol.get('contractSize', 0))
+            min_vol = float(symbol.get('minVol', 1))
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
-                exchange
+                exchange,
+                min_order=min_vol * contract_size,
+                coin_count=contract_size,
+                step=contract_size,
             )
 
     def get_wallet_pairs_okx(self, exchange: Exchange) -> None:
@@ -214,11 +235,13 @@ class Command(BaseCommand):
         response.raise_for_status()
         for symbol in data['data']:
             if symbol['ctType'] == 'linear' and symbol['settleCcy'] == 'USDT':
+                ct_val = float(symbol['ctVal'])
                 self.create_pair_exchange_mapping(
                     symbol['instId'],
                     exchange,
-                    min_order = float(symbol['ctVal']) * float(symbol['minSz']),
-                    coin_count = float(symbol['ctVal'])
+                    min_order=ct_val * float(symbol['minSz']),
+                    coin_count=ct_val,
+                    step=ct_val,
                 )
 
     def shibari(self):
@@ -245,10 +268,11 @@ class Command(BaseCommand):
         PairExchangeMapping.objects.update_or_create(
             local_name=name,
             exchange=exchange,
-            defaults = {
+            defaults={
                 'normalized_name': self.normalyze_local_name(name),
                 'min_order': kwargs.get('min_order', 0),
-                'coin_count': kwargs.get('coin_count', 0)
+                'coin_count': kwargs.get('coin_count', 0),
+                'step': kwargs.get('step', 0),
             }
         )
 
