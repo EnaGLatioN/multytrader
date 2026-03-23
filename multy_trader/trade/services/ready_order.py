@@ -18,6 +18,7 @@ class ReadyOrder:
     secret_key: str
     passphrase: str
     exchange_name: str
+    exchange_id: str
     trade_type: str
 
 
@@ -35,5 +36,6 @@ class ReadyOrderFactory():
             secret_key = order.exchange_account.secret_key,
             passphrase = order.exchange_account.passphrase,
             exchange_name = exchange.name,
+            exchange_id = exchange.id,
             trade_type = order.trade_type
         )

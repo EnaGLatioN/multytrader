@@ -4,6 +4,7 @@ import sys
 import signal
 import django
 import logging
+from datetime import datetime
 from django.core.management.base import BaseCommand
 from collections import defaultdict
 from trade.models import Entry
@@ -11,6 +12,7 @@ from exchange.models import Exchange
 from trade.services.price_checker import PriceChecker, PriceCheckerFactory
 from trade.services.ready_order import ReadyOrder, ReadyOrderFactory
 from trade.services.send_order import opening_orders, closed_orders, update_status_entry
+from analytics.services import AnalyticsTracker
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'multy_trader.settings')
@@ -35,8 +37,7 @@ class Command(BaseCommand):
         parser.add_argument('--restart', action='store_true', help='Перезапуск')
 
     def handle(self, *args, **options):
-        entry = self.get_entry(options.get("entry_id"))
-        self.entry = entry 
+        self.entry = self.get_entry(options.get("entry_id")) 
         
         self.trade(self.entry, options.get("restart"))
     
@@ -54,6 +55,17 @@ class Command(BaseCommand):
         logger.info("Процесс плавно завершен.")
         sys.exit(0)
     
+    def analytics_collection(self, entry):
+        AnalyticsTracker(
+            entry_id=entry.id,
+            wallet_pair_id=entry.wallet_pair.id,
+            profit=entry.profit,
+            shoulder=entry.shoulder,
+            trader_id=entry.trader.id,
+            target_entry_spread=entry.entry_course,
+            target_exit_spread=entry.exit_course,
+        )
+
     def forced_closure(self, open_orders, entry):
         closed_orders(open_orders, entry)
 
@@ -64,8 +76,6 @@ class Command(BaseCommand):
         return entry.order_entry.select_related("exchange_account__exchange").all()
 
     def get_price_checker(self, entry):
-        """Тут только нужная информация для проверки цены (по одному ордеру с каждой биржи)"""
-
         orders_for_price_checker = {}
         ready_order_for_send = defaultdict(list)
 
@@ -124,7 +134,9 @@ class Command(BaseCommand):
             getter_course = self.getter_course(reverse_price_checker)
             if self.checking_for_close(entry, getter_course):
                 flag = False
-                return closed_orders(open_orders, entry)
+                res = closed_orders(open_orders, entry)
+                AnalyticsTracker.update(actual_exit_spread=getter_course, exit_time=datetime.now())
+                return res
         
     def open_order(self, entry, flag = True):
         while flag:
@@ -137,6 +149,8 @@ class Command(BaseCommand):
             logger.info('-------------------------------------------')
             if self.checking_for_open(entry, getter_course): ###
                 flag = False
+                AnalyticsTracker.update(actual_entry_spread=getter_course, start_time=datetime.now())
+                AnalyticsTracker.update_ex(ready_order_for_send)
                 if open_orders := opening_orders(ready_order_for_send, entry):
                     self.open_orders = open_orders
                     if closed := self.close_order(open_orders, entry):
@@ -145,13 +159,18 @@ class Command(BaseCommand):
 
     def trade(self, entry, restart):
         logger.info('START')
-        while True:
-            success = self.open_order(entry)
-            entry.refresh_from_db()
-            if restart and success and entry.status == 'COMPLETED':
-                logger.info("Сделка завершена")
-                update_status_entry(entry, "WAIT")
-                continue
-            
-            break
+        try:
+            while True:
+                self.analytics_collection(entry)
+                success = self.open_order(entry)
+                entry.refresh_from_db()
+                AnalyticsTracker.save_and_clear()
+                if restart and success and entry.status == 'COMPLETED':
+                    logger.info("Сделка завершена")
+                    update_status_entry(entry, "WAIT")
+                    continue
+                
+                break
+        except Exception as e:
+            logger.error(f"Критическая ошибка: {e}")
                   
