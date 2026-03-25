@@ -1,6 +1,9 @@
 import ccxt
 import logging
-from trade.models import TradeType
+from trade.models import (
+    TradeType,
+    Order
+)
 from multy_trader import settings
 from utils import get_wallet_pair
 
@@ -47,8 +50,7 @@ def bybit_buy_futures_contract(ready_order):
         except Exception as e:
             logger.warning(f"Не удалось установить плечо: {e}")
 
-        print("Q1"*50)
-        print(ready_order.profit)
+        logger.info(ready_order.profit)
         order_params = {
             'symbol': wallet_pair,
             'type': 'market',
@@ -56,7 +58,7 @@ def bybit_buy_futures_contract(ready_order):
             'amount': ready_order.profit,
             'params': {
                 'reduceOnly': False,
-                'positionIdx': 0
+                'positionIdx': 1 if ready_order.trade_type == TradeType.LONG else 2
             }
         }
         # logger.info(f"🛒 Создаем ордер: {order_params}")

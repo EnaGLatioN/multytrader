@@ -41,7 +41,7 @@ class Command(BaseCommand):
         
         for name, func in exchanges.items():
             exchange = self.get_or_create_exchange(name)
-            pairs = func(exchange)
+            func(exchange)
             logger.info(f"Succes added pairs {name}")
         
         self.shibari()
@@ -66,7 +66,6 @@ class Command(BaseCommand):
         for resp in response:
             order_size_min = float(resp.order_size_min) if resp.order_size_min else 1
             quanto_multiplier = float(resp.quanto_multiplier) if resp.quanto_multiplier else 1
-
             self.create_pair_exchange_mapping(
                 resp.name,
                 exchange,
