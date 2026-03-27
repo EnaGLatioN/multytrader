@@ -56,13 +56,9 @@ def send_reply_message(entry, text):
 
 def send_telegram_message(payload):
     """Отправляет сообщение в чат тг"""
-    proxies = {
-        'http': "http://user373432:o5jvwd@178.92.196.166:1430",
-        'https': "http://user373432:o5jvwd@178.92.196.166:1430"
-    }
 
     try:
-        response = requests.post(f'https://api.telegram.org/bot{TG_TOKEN}/sendMessage', json=payload, proxies=proxies)
+        response = requests.post(f'https://api.telegram.org/bot{TG_TOKEN}/sendMessage', json=payload)
         data = response.json()
         if data.get('ok'):
             return data.get('result')
