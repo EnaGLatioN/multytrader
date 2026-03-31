@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def gate_buy_futures_contract(ready_order):
+def gate_buy_futures_contract(ready_order, **kwargs):
     """
     Функция для покупки фьючерсного контракта на GATE по маркету
     """

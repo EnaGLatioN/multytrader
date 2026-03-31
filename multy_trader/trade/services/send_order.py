@@ -21,7 +21,7 @@ exchanges = {
 }
 
 
-def send_order_to_exchange_api(orders: list, exchanges: dict):
+def send_order_to_exchange_api(orders: list, exchanges: dict, reduce_only=False):
     """Покупка"""
 
     futures = {}
@@ -29,7 +29,7 @@ def send_order_to_exchange_api(orders: list, exchanges: dict):
         for order in orders:
             func = exchanges.get(order.exchange_name)
             if func:
-                f = executor.submit(func, order)
+                f = executor.submit(func, order, reduce_only=reduce_only)
                 futures[f] = order
             else:
                 print(f"Функция для биржи {order.exchange_name} не найдена")
@@ -97,7 +97,7 @@ def opening_orders(ready_order_for_send, entry):
         else: # ошибка открытия шортов
             # Закрыть открывшиеся лонги и шорты
             reverse_order = change_trade_type(success_long_order + success_short_order)
-            futures = send_order_to_exchange_api(reverse_order, exchanges)
+            futures = send_order_to_exchange_api(reverse_order, exchanges, reduce_only=True)
             # поменять статус
             update_status_entry(entry, "FAILED")
             # Отправить уведомление
@@ -106,7 +106,7 @@ def opening_orders(ready_order_for_send, entry):
     else: # ошибки открытия лонгов
         if success_long_order: # Закрыть открывшиеся лонги если есть + отправить сообщение
             reverse_order = change_trade_type(success_long_order)
-            futures = send_order_to_exchange_api(reverse_order, exchanges)
+            futures = send_order_to_exchange_api(reverse_order, exchanges, reduce_only=True)
             update_status_entry(entry, "FAILED")
             send_reply_message(entry, 'Открытые ордера на лонг успешно были закрыты')
 
@@ -117,7 +117,7 @@ def opening_orders(ready_order_for_send, entry):
 
 
 def closed_orders(open_orders, entry):
-    futures = send_order_to_exchange_api(open_orders, exchanges)
+    futures = send_order_to_exchange_api(open_orders, exchanges, reduce_only=True)
     status, success_closed_order = progress_check(futures)
     if status: # ордера закрыты
         update_status_entry(entry, "COMPLETED")

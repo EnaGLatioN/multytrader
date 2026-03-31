@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def bybit_buy_futures_contract(ready_order):
+def bybit_buy_futures_contract(ready_order, **kwargs):
 
     """
     Покупка фьючерса на Bybit mainnet
@@ -27,6 +27,7 @@ def bybit_buy_futures_contract(ready_order):
     :param reduce_only: Только уменьшение позиции
     :return: Результат ордера
     """
+
     proxy = ready_order.proxy
     wallet_pair = ready_order.wallet_pair.local_name
     try:
@@ -57,7 +58,7 @@ def bybit_buy_futures_contract(ready_order):
             'side': 'buy' if ready_order.trade_type == TradeType.LONG else 'sell',
             'amount': ready_order.profit,
             'params': {
-                'reduceOnly': False,
+                'reduceOnly': kwargs.get('reduce_only', False),
                 'positionIdx': 1 if ready_order.trade_type == TradeType.LONG else 2
             }
         }

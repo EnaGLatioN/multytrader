@@ -5,7 +5,7 @@ from trade.models import TradeType, Order
 logger = logging.getLogger(__name__)
 
 
-def binance_futures_trade(ready_order):
+def binance_futures_trade(ready_order, **kwargs):
 
     proxy = ready_order.proxy
     symbol = ready_order.wallet_pair.local_name 
