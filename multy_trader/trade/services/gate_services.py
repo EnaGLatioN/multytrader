@@ -104,17 +104,14 @@ def close_position(exchange, symbol, coin_count, ready_order):
 
         if not current_position:
             msg = f"🔍 Активная позиция не найдена для {symbol}"
-            logger.info(msg)
             return False, msg # Позиции нет, считаем что закрыта
 
-        logger.info(f"🔍 Найдена позиция: {current_position}")
 
         # 🔥 ОПРЕДЕЛЯЕМ СТОРОНУ ДЛЯ ЗАКРЫТИЯ
         # Если позиция LONG - закрываем SELL, и наоборот
         side = 'sell' if current_position['side'] == 'long' else 'buy'
         amount = abs(current_position['contracts'])
 
-        logger.info(f"🔄 Закрываем позицию: {side} {amount} контрактов")
 
         # 🔥 РАЗМЕЩАЕМ ПРОТИВОПОЛОЖНЫЙ ОРДЕР
         close_order_params = {
@@ -130,7 +127,6 @@ def close_position(exchange, symbol, coin_count, ready_order):
 
         close_response = exchange.create_order(**close_order_params)
         msg = f"✅ Позиция закрыта: {close_response}"
-        logger.info(msg)
         return True, msg
 
     except ccxt.BaseError as e:
