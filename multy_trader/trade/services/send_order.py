@@ -67,7 +67,8 @@ def progress_check(futures: dict):
 
 def change_trade_type(success_order):
     for order in success_order:
-        order.trade_type = "SHORT" if order.trade_type == "LONG" else "LONG"
+        if order.exchange_name != 'BYBIT':
+            order.trade_type = "SHORT" if order.trade_type == "LONG" else "LONG"
     return success_order
 
 
