@@ -1,3 +1,5 @@
+from functools import reduce
+
 import ccxt
 import logging
 from trade.models import (
@@ -44,13 +46,16 @@ def bybit_buy_futures_contract(ready_order, **kwargs):
         })
         logger.debug(f"Конфигурация прокси: {exchange.proxies}")
         # logger.info("🔗 Подключаемся к Bybit mainnet...")
-
+        reduce_only = kwargs.get('reduce_only', False)
         try:
             exchange.set_leverage(ready_order.shoulder, wallet_pair)
             logger.info(f"⚖️ Плечо установлено: {ready_order.shoulder}x")
         except Exception as e:
             logger.warning(f"Не удалось установить плечо: {e}")
-
+        if reduce_only:
+            position_idx = 1 if ready_order.trade_type == TradeType.SHORT else 2
+        else:
+            position_idx = 1 if ready_order.trade_type == TradeType.LONG else 2
         logger.info(ready_order.profit)
         order_params = {
             'symbol': wallet_pair,
@@ -59,7 +64,7 @@ def bybit_buy_futures_contract(ready_order, **kwargs):
             'amount': ready_order.profit,
             'params': {
                 'reduceOnly': kwargs.get('reduce_only', False),
-                'positionIdx': 1 if ready_order.trade_type == TradeType.LONG else 2
+                'positionIdx': position_idx
             }
         }
         # logger.info(f"🛒 Создаем ордер: {order_params}")
