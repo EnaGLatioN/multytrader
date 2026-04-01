@@ -54,5 +54,6 @@ def get_min_order(request):
     ).values_list('min_order', flat=True)
     return JsonResponse({
             'success': True,
-            'min_order': min(all_min_order),
+            'min_order': max(all_min_order),
         })
+        
