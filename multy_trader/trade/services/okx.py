@@ -18,29 +18,23 @@ def okx_futures_trade(ready_order, **kwargs):
             'enableRateLimit': True,
             'proxies': proxy.get_proxies() if proxy else None,
             'options': {
-                'defaultType': 'swap', # OKX фьючерсы называются swap
+                'defaultType': 'swap', 
             }
         })
 
-        # Установка плеча на OKX
         try:
-            # Для OKX часто нужно указывать 'mgnMode': 'cross' или 'isolated'
             exchange.set_leverage(ready_order.shoulder, symbol, {'mgnMode': 'isolated'})
             logger.info(f"⚖️ OKX: Плечо {ready_order.shoulder}x установлено")
         except Exception as e:
             logger.warning(f"OKX: Плечо не изменено: {e}")
 
-        side = 'buy' if ready_order.trade_type == TradeType.LONG else 'sell'
-
-        # Параметры ордера
-        # Важно: на OKX 'amount' может быть в контрактах, а не в монетах. 
         # Если используешь рыночный ордер, проверь, что ready_order.profit — это кол-во контрактов.
         order_ex = exchange.create_market_order(
             symbol=symbol,
-            side=side,
+            side='buy' if ready_order.trade_type == TradeType.LONG else 'sell',
             amount=int(ready_order.profit / coin_count) if coin_count else 0,
             params={
-                'tdMode': 'isolated', # Trade Mode: изолированная маржа
+                'tdMode': 'isolated',
             }
         )
         

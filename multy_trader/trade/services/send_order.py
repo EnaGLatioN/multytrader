@@ -4,6 +4,7 @@ from .mexc_services import mexc_buy_futures_contract
 from .bybit_services import bybit_buy_futures_contract
 from .binance import binance_futures_trade
 from .okx import okx_futures_trade
+from .htx import htx_futures_trade
 from trade.models import Error, Order
 from trade.bot import send_reply_message
 
@@ -14,7 +15,7 @@ exchanges = {
     "BYBIT": bybit_buy_futures_contract,
     #'KUCOIN': gate_buy_futures_contract,
     'BINANCE': binance_futures_trade,
-    #'HTX': gate_buy_futures_contract,
+    'HTX': htx_futures_trade,
     #'BINGX': gate_buy_futures_contract,
     #'OURBIT': gate_buy_futures_contract,
     'OKX': okx_futures_trade
