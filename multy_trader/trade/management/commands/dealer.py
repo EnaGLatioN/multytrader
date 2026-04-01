@@ -169,7 +169,7 @@ class Command(BaseCommand):
                     logger.info("Сделка завершена")
                     update_status_entry(entry, "WAIT")
                     continue
-                
+
                 break
         except Exception as e:
             logger.error(f"Критическая ошибка: {e}")

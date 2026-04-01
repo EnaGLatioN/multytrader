@@ -1,6 +1,10 @@
 import ccxt
 import logging
-from trade.models import TradeType, Order
+from trade.models import (
+    TradeType,
+    Order
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +21,7 @@ def htx_futures_trade(ready_order, **kwargs):
             'enableRateLimit': True,
             'proxies': proxy.get_proxies() if proxy else None,
             'options': {
-                'defaultType': 'linear', 
+                'defaultType': 'linear',
             }
         })
 
@@ -27,22 +31,55 @@ def htx_futures_trade(ready_order, **kwargs):
         except Exception as e:
             logger.warning(f"HTX: Плечо не изменено: {e}")
 
+        side = 'buy' if ready_order.trade_type == TradeType.LONG else 'sell'
+
+        amount = int(ready_order.profit / coin_count) if coin_count and coin_count > 0 else 0
+        if amount <= 0:
+            return {'success': False, 'error': f"❌ HTX: Некорректное количество {amount}"}
+
+        # Параметры ордера
         params = {
-            'marginMode': 'isolated',
+            'marginMode': 'isolated',  # изолированная маржа
         }
 
-        if kwargs.get('reduce_only'):
-            params['reduceOnly'] = True
-            # Для HTX в режиме хеджирования при закрытии часто нужен offset
-            #params['offset'] = 'close'
+        # Для хедж-режима нужно указать offset
+        # Пробуем сначала в хедж-режиме, если ошибка - пробуем в однонаправленном
+        try:
+            # Пытаемся открыть ордер в хедж-режиме
+            params['offset'] = 'open'  # open - открытие позиции
+            if kwargs.get('reduce_only'):
+                params['offset'] = 'close'  # close - закрытие позиции
+                params['reduceOnly'] = True
 
-        order_ex = exchange.create_market_order(
-            symbol=symbol,
-            side='buy' if ready_order.trade_type == TradeType.LONG else 'sell',
-            amount=int(ready_order.profit / coin_count) if coin_count else 0,
-            params=params
-        )
-        
+            order_ex = exchange.create_market_order(
+                symbol=symbol,
+                side=side,
+                amount=amount,
+                params=params
+            )
+
+        except ccxt.BadRequest as e:
+            error_msg = str(e)
+            # Если ошибка про hedge mode, пробуем без offset
+            if 'Hedge mode' in error_msg or 'one-way mode' in error_msg:
+                logger.info("🔄 HTX: Переключение на однонаправленный режим")
+
+                # Пробуем без offset
+                params_clean = {
+                    'marginMode': 'isolated',
+                }
+                if kwargs.get('reduce_only'):
+                    params_clean['reduceOnly'] = True
+
+                order_ex = exchange.create_market_order(
+                    symbol=symbol,
+                    side=side,
+                    amount=amount,
+                    params=params_clean
+                )
+            else:
+                raise e
+
         order_obj = Order.objects.get(id=ready_order.id)
         order_obj.ex_order_id = str(order_ex['id'])
         order_obj.save()

@@ -9,43 +9,73 @@ def okx_futures_trade(ready_order, **kwargs):
     proxy = ready_order.proxy
     symbol = ready_order.wallet_pair.local_name
     coin_count = ready_order.wallet_pair.coin_count
+    is_long = ready_order.trade_type == TradeType.LONG
+    is_reduce_only = kwargs.get('reduce_only', False)
+
+    # Расчёт количества контрактов
+    if coin_count and coin_count > 0:
+        amount = int(ready_order.profit / coin_count)
+    else:
+        amount = 0
+
+    if amount <= 0:
+        logger.error(f"❌ Некорректное количество {amount} для ордера {ready_order.id}")
+        return {'success': False, 'error': f"Некорректное количество {amount}"}
+
+    if amount < 1:
+        amount = 1
 
     try:
         exchange = ccxt.okx({
             'apiKey': ready_order.api_key,
             'secret': ready_order.secret_key,
-            'password': ready_order.passphrase, # У OKX обязателен Passphrase!
+            'password': ready_order.passphrase,
             'enableRateLimit': True,
             'proxies': proxy.get_proxies() if proxy else None,
-            'options': {
-                'defaultType': 'swap', 
-            }
+            'options': {'defaultType': 'swap'},
         })
 
+        # Установка плеча (изолированная маржа)
         try:
-            exchange.set_leverage(ready_order.shoulder, symbol, {'mgnMode': 'isolated'})
-            logger.info(f"⚖️ OKX: Плечо {ready_order.shoulder}x установлено")
+            exchange.set_leverage(
+                leverage=int(ready_order.shoulder),
+                symbol=symbol,
+                params={'mgnMode': 'isolated'}
+            )
+            logger.info(f"⚖️ Плечо {ready_order.shoulder}x установлено для {symbol}")
         except Exception as e:
-            logger.warning(f"OKX: Плечо не изменено: {e}")
+            logger.warning(f"Не удалось установить плечо: {e}")
 
-        # Если используешь рыночный ордер, проверь, что ready_order.profit — это кол-во контрактов.
-        order_ex = exchange.create_market_order(
+        side = 'buy' if is_long else 'sell'
+
+        params = {
+            'tdMode': 'isolated',
+        }
+
+        if is_reduce_only:
+            params['reduceOnly'] = True
+            logger.info(f"📉 Закрывающий ордер для {symbol}")
+
+        order = exchange.create_market_order(
             symbol=symbol,
-            side='buy' if ready_order.trade_type == TradeType.LONG else 'sell',
-            amount=int(ready_order.profit / coin_count) if coin_count else 0,
-            params={
-                'tdMode': 'isolated',
-            }
+            side=side,
+            amount=amount,
+            params=params
         )
-        
-        order_obj = Order.objects.get(id=ready_order.id)
-        order_obj.ex_order_id = order_ex['id']
-        order_obj.save()
 
-        return {'success': True, 'result': f"✅ OKX: ID {order_ex['id']}"}
+        Order.objects.filter(id=ready_order.id).update(ex_order_id=str(order['id']))
 
-    except ccxt.InsufficientFunds as e:
-        return {'success': False, 'error': f"❌ OKX: Недостаточно средств: {e}"}
+        logger.info(f"✅ Ордер {order['id']} создан для {symbol} (side={side}, amount={amount})")
+        return {'success': True, 'result': f"Ордер {order['id']} создан"}
+
+    except ccxt.InsufficientFunds:
+        logger.error(f"❌ Недостаточно средств для ордера {ready_order.id}")
+        return {'success': False, 'error': "Недостаточно средств"}
+
+    except ccxt.BadRequest as e:
+        logger.error(f"❌ Ошибка запроса: {e}")
+        return {'success': False, 'error': str(e)}
+
     except Exception as e:
-        logger.error(f"❌ OKX Error: {e}")
-        return {'success': False, 'error': f"❌ OKX: {str(e)}"}
+        logger.error(f"❌ Ошибка OKX: {e}")
+        return {'success': False, 'error': str(e)}
