@@ -52,13 +52,13 @@ class Command(BaseCommand):
 
         print("первые 5:")
         for p in pairs[:5]:
-            print(f"  {p['local_name']}  min_order={p['min_order']}  coin_count={p['coin_count']}  step={p['step']}")
+            print(f"  {p['local_name']}  min_order={p['min_order']}  coin_count={p['coin_count']}  step={p['step']}  min_notional={p['min_notional']}")
 
         bad = [p for p in pairs if not float(p['min_order'] or 0) or not float(p['coin_count'] or 0) or not float(p['step'] or 0)]
         if bad:
             print("проблемные:")
             for p in bad[:5]:
-                print(f"  {p['local_name']}  min_order={p['min_order']}  coin_count={p['coin_count']}  step={p['step']}")
+                print(f"  {p['local_name']}  min_order={p['min_order']}  coin_count={p['coin_count']}  step={p['step']}  min_notional={p['min_notional']}")
 
     def test_gate(self):
         configuration = gate_api.Configuration(host="https://fx-api.gateio.ws/api/v4")
@@ -74,6 +74,7 @@ class Command(BaseCommand):
                 'min_order':  order_size_min * quanto_multiplier,
                 'coin_count': quanto_multiplier,
                 'step':       quanto_multiplier,
+                'min_notional': None,
             })
         return result
 
@@ -85,6 +86,7 @@ class Command(BaseCommand):
             'min_order':  float(s['lotSizeFilter']['minOrderQty']),
             'coin_count': 1,
             'step':       float(s['lotSizeFilter']['qtyStep']),
+            'min_notional': float(s['lotSizeFilter']['minNotionalValue']) if 'minNotionalValue' in s['lotSizeFilter'] else None,
         } for s in data["result"]["list"]]
 
     def test_kucoin(self):
@@ -94,18 +96,21 @@ class Command(BaseCommand):
             'min_order':  float(s['lotSize']) * float(s['multiplier']),
             'coin_count': float(s['multiplier']),
             'step':       float(s['multiplier']),
-        } for s in data['data']]
+            'min_notional': None,
+        } for s in data['data'] if not s.get('isInverse')]
 
     def test_binance(self):
         data = requests.get("https://fapi.binance.com/fapi/v1/exchangeInfo").json()
         result = []
         for s in data['symbols']:
             lot = next((f for f in s['filters'] if f['filterType'] == 'LOT_SIZE'), None)
+            notional_filter = next((f for f in s['filters'] if f['filterType'] == 'MIN_NOTIONAL'), None)
             result.append({
                 'local_name': s['symbol'],
                 'min_order':  float(lot['minQty']) if lot else 0,
                 'coin_count': 1,
                 'step':       float(lot['stepSize']) if lot else 0,
+                'min_notional': float(notional_filter['notional']) if notional_filter else None,
             })
         return result
 
@@ -116,6 +121,7 @@ class Command(BaseCommand):
             'min_order':  float(s.get('contract_size', 0)),
             'coin_count': float(s.get('contract_size', 0)),
             'step':       float(s.get('contract_size', 0)),
+            'min_notional': None,
         } for s in data['data']]
 
     def test_mexc(self):
@@ -125,15 +131,17 @@ class Command(BaseCommand):
             'min_order':  float(s.get('minVol', 0)) * float(s.get('contractSize', 0)),
             'coin_count': float(s.get('contractSize', 0)),
             'step':       float(s.get('contractSize', 0)),
+            'min_notional': None,
         } for s in data['data']]
 
     def test_bingx(self):
         data = requests.get("https://open-api.bingx.com/openApi/swap/v2/quote/contracts").json()
         return [{
             'local_name': s['symbol'],
-            'min_order':  float(s['size']) * float(s['tradeMinQuantity']),
+            'min_order':  float(s['tradeMinQuantity']),
             'coin_count': float(s['size']),
-            'step':       float(s['size']),
+            'step':       10 ** (-int(s.get('quantityPrecision', 0))),
+            'min_notional': float(s['tradeMinUSDT']) if 'tradeMinUSDT' in s else None,
         } for s in data['data']]
 
     def test_ourbit(self):
@@ -143,6 +151,7 @@ class Command(BaseCommand):
             'min_order':  float(s.get('minVol', 1)) * float(s.get('contractSize', 0)),
             'coin_count': float(s.get('contractSize', 0)),
             'step':       float(s.get('contractSize', 0)),
+            'min_notional': None,
         } for s in data['data']]
 
     def test_okx(self):
@@ -151,13 +160,6 @@ class Command(BaseCommand):
             'local_name': s['instId'],
             'min_order':  float(s['ctVal']) * float(s['minSz']),
             'coin_count': float(s['ctVal']),
-            'step':       float(s['ctVal']),
+            'step':       float(s['ctVal']) * float(s['lotSz']),
+            'min_notional': None,
         } for s in data['data'] if s['ctType'] == 'linear' and s['settleCcy'] == 'USDT']
-
-    def normalyze_local_name(self, name):
-        clean = name.replace('_', '').replace('-', '').replace('/', '').upper()
-        if clean.endswith('USDTM'):
-            clean = clean[:-1]
-        if clean.endswith('SWAP'):
-            clean = clean[:-4]
-        return clean

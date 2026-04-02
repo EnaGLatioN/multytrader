@@ -144,6 +144,13 @@ class PairExchangeMapping(Model):
         verbose_name="Шаг",
         default=0
     )
+    min_notional = FloatField(
+        help_text="Минимальная стоимость ордера в валюте котировки (USDT)",
+        verbose_name="Мин. номинал (USDT)",
+        null=True,
+        blank=True,
+        default=None
+    )
     normalized_name = CharField(
         max_length=50, 
         db_index=True

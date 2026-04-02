@@ -73,11 +73,18 @@
             }
             });
             $chosenSelect.on('dblclick', 'option', function() {
-                console.log('Option double clicked');
+                console.log('Option double clicked in chosen');
                 setTimeout(function() {
                     var selected = getSelectedFromChosen();
                     saveExchangesToSession(selected);
                 }, 50);
+            });
+            $('.selector-available select').on('dblclick', 'option', function() {
+                console.log('Option double clicked in available');
+                setTimeout(function() {
+                    var selected = getSelectedFromChosen();
+                    saveExchangesToSession(selected);
+                }, 100);
             });
             
             return true;

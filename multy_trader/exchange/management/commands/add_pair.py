@@ -86,12 +86,14 @@ class Command(BaseCommand):
         response.raise_for_status()
 
         for symbol in data["result"]["list"]:
+            lot = symbol['lotSizeFilter']
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
                 exchange,
-                min_order=float(symbol['lotSizeFilter']['minOrderQty']),
+                min_order=float(lot['minOrderQty']),
                 coin_count=1,
-                step=float(symbol['lotSizeFilter']['qtyStep']),
+                step=float(lot['qtyStep']),
+                min_notional=float(lot['minNotionalValue']) if 'minNotionalValue' in lot else None,
             )
     
     def get_wallet_pairs_kucoin(self, exchange: Exchange) -> None:
@@ -105,6 +107,8 @@ class Command(BaseCommand):
 
         response.raise_for_status()
         for symbol in data['data']:
+            if symbol.get('isInverse'):
+                continue
             multiplier = float(symbol['multiplier'])
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
@@ -127,18 +131,20 @@ class Command(BaseCommand):
         response.raise_for_status()
         for symbol in data['symbols']:
             lot = next((f for f in symbol['filters'] if f['filterType'] == 'LOT_SIZE'), None)
+            notional_filter = next((f for f in symbol['filters'] if f['filterType'] == 'MIN_NOTIONAL'), None)
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
                 exchange,
                 min_order=float(lot['minQty']) if lot else 0,
                 coin_count=1,
                 step=float(lot['stepSize']) if lot else 0,
+                min_notional=float(notional_filter['notional']) if notional_filter else None,
             )
     
     def get_wallet_pairs_htx(self, exchange: Exchange) -> None:
         """
         Достает валютные пары с биржи HTX.
-        symbol['contract_size'] - Стоимость контракта (в USDT за один контракт)
+        symbol['contract_size'] - Кол-во монет в одном контракте (например 0.001 BTC)
         """
 
         url = "https://api.hbdm.com/linear-swap-api/v1/swap_contract_info"
@@ -185,16 +191,18 @@ class Command(BaseCommand):
         url = "https://open-api.bingx.com/openApi/swap/v2/quote/contracts"
         response = requests.get(url)
         data = response.json()
-    
+
         response.raise_for_status()
         for symbol in data['data']:
             size = float(symbol['size'])
+            qty_precision = int(symbol.get('quantityPrecision', 0))
             self.create_pair_exchange_mapping(
                 symbol['symbol'],
                 exchange,
-                min_order=size * float(symbol['tradeMinQuantity']),
+                min_order=float(symbol['tradeMinQuantity']),
                 coin_count=size,
-                step=size,
+                step=10 ** (-qty_precision),
+                min_notional=float(symbol['tradeMinUSDT']) if 'tradeMinUSDT' in symbol else None,
             )
     
     def get_wallet_pairs_ourbit(self, exchange: Exchange) -> None:
@@ -240,7 +248,7 @@ class Command(BaseCommand):
                     exchange,
                     min_order=ct_val * float(symbol['minSz']),
                     coin_count=ct_val,
-                    step=ct_val,
+                    step=ct_val * float(symbol['lotSz']),
                 )
 
     def shibari(self):
@@ -272,6 +280,7 @@ class Command(BaseCommand):
                 'min_order': kwargs.get('min_order', 0),
                 'coin_count': kwargs.get('coin_count', 0),
                 'step': kwargs.get('step', 0),
+                'min_notional': kwargs.get('min_notional', None),
             }
         )
 

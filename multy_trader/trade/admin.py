@@ -135,7 +135,7 @@ class EntryAdmin(ModelAdmin):
             return [OrderInline]
 
         exchange_ids = request.session.get('selected_exchanges', [])
-        
+
         if exchange_ids:
             exchanges = Exchange.objects.filter(id__in=exchange_ids)
             for exchange in exchanges:
@@ -144,13 +144,13 @@ class EntryAdmin(ModelAdmin):
                         f'DynamicOrderInlineFor{exch.id}',
                         (DynamicOrderInline,),
                         {
-                            '__init__': lambda self, parent_model, admin_site: 
+                            '__init__': lambda self, parent_model, admin_site:
                                 DynamicOrderInline.__init__(self, parent_model, admin_site, exch),
                         }
                     )
                 inline_class = create_inline_class(exchange)
                 inlines.append(inline_class)
-       
+
         return inlines
         
     def get_form(self, request, obj=None, **kwargs):
