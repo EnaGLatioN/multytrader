@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 from django.core.management.base import BaseCommand
 from collections import defaultdict
-from trade.models import Entry
+from trade.models import Entry, Process
 from exchange.models import Exchange
 from trade.services.price_checker import PriceChecker, PriceCheckerFactory
 from trade.services.ready_order import ReadyOrder, ReadyOrderFactory
@@ -28,6 +28,7 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
         self.open_orders = None
         self.entry = None
+        self.update = False
 
         signal.signal(signal.SIGTERM, self.handle_exit_signal)
         signal.signal(signal.SIGUSR1, self.handle_update_signal)
@@ -39,11 +40,16 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.entry = self.get_entry(options.get("entry_id")) 
         
-        self.trade(self.entry, options.get("restart"))
+        try:
+            self.trade(self.entry, options.get("restart"))
+        except Exception as e:
+            logger.error(f"Ошибка: {e}")
+        finally:
+            Process.objects.get(entry_id=options.get("entry_id")).delete()
     
     def handle_update_signal(self, signum, frame):
         logger.info("Получен сигнал на обновление...")
-        self.entry.refresh_from_db()
+        self.update = True
 
     def handle_exit_signal(self, signum, frame):
         logger.info("Получен сигнал на остановку процесса...")
@@ -129,6 +135,10 @@ class Command(BaseCommand):
 
     def close_order(self, open_orders, entry, flag = True):
         while flag:
+            if self.update:
+                entry = self.get_entry(entry.id) 
+                self.update = False
+
             price_checker, _ = self.get_price_checker(entry)
             reverse_price_checker = self.reverse_price_checker(price_checker)
             getter_course = self.getter_course(reverse_price_checker)
@@ -140,6 +150,10 @@ class Command(BaseCommand):
         
     def open_order(self, entry, flag = True):
         while flag:
+            if self.update:
+                entry = self.get_entry(entry.id) 
+                self.update = False
+
             price_checker, ready_order_for_send = self.get_price_checker(entry)
             getter_course = self.getter_course(price_checker)
             # ГДЕ-ТО НУЖНО ДОБАВИТЬ ПРОВЕРКУ НА ВАЛЮТНУЮ ПАРУ
@@ -159,18 +173,14 @@ class Command(BaseCommand):
 
     def trade(self, entry, restart):
         logger.info('START')
-        try:
-            while True:
-                self.analytics_collection(entry)
-                success = self.open_order(entry)
-                entry.refresh_from_db()
-                AnalyticsTracker.save_and_clear()
-                if restart and success and entry.status == 'COMPLETED':
-                    logger.info("Сделка завершена")
-                    update_status_entry(entry, "WAIT")
-                    continue
+        while True:
+            self.analytics_collection(entry)
+            success = self.open_order(entry)
+            entry.refresh_from_db()
+            AnalyticsTracker.save_and_clear()
+            if restart and success and entry.status == 'COMPLETED':
+                logger.info("Сделка завершена")
+                update_status_entry(entry, "WAIT")
+                continue
 
-                break
-        except Exception as e:
-            logger.error(f"Критическая ошибка: {e}")
-                  
+            break
