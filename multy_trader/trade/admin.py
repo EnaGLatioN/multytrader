@@ -5,7 +5,7 @@ import logging
 from email.policy import default
 
 from django.contrib.admin import ModelAdmin, TabularInline
-from django.contrib.messages import warning
+from django.contrib import messages
 from .models import Entry, Order, Process, EntryStatusType
 from django.contrib import admin
 from trader.models import ExchangeAccount, Proxy
@@ -14,6 +14,8 @@ import subprocess
 from .forms import EntryForm
 from decouple import config
 from django.db.models import Count
+from django.core.exceptions import ValidationError
+from django.shortcuts import redirect
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -225,10 +227,22 @@ class EntryAdmin(ModelAdmin):
                 instance.status = EntryStatusType.STOPPED # поменяли на стутс STOPPED
         return instance
     
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        try:
+            return super().changeform_view(request, object_id, form_url, extra_context)
+        except ValidationError as e:
+            messages.error(request, e.message)
+            return redirect(request.path)
+
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
-        if not change and form.instance.is_active:
-            self._create_process(str(form.instance.id), form.instance.restart)
+
+        if not change:
+            if not Order.objects.filter(entry=form.instance).exists():
+                raise ValidationError("Необходимо добавить хотя бы один ордер для выбранных бирж")
+
+            if form.instance.is_active:
+                self._create_process(str(form.instance.id), form.instance.restart)
     
     def save_model(self, request, obj, form, change):
         if not change: 

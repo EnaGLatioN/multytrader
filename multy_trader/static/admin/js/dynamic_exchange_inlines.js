@@ -27,7 +27,7 @@
             }),
             contentType: 'application/json',
             success: function() {
-                location.reload();
+                window.location.href = window.location.pathname;
             },
             error: function(xhr, status, error) {
                 console.error('Error saving exchanges:', error);

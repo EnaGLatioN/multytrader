@@ -1,7 +1,8 @@
 from django.forms import (
-    ModelForm, 
-    BooleanField, 
-    ModelMultipleChoiceField
+    ModelForm,
+    BooleanField,
+    ModelMultipleChoiceField,
+    ValidationError
 )
 from exchange.models import Exchange
 from .models import Entry
@@ -12,8 +13,9 @@ class EntryForm(ModelForm):
     exchanges = ModelMultipleChoiceField(
         queryset=Exchange.objects.filter(is_active=True),
         widget=FilteredSelectMultiple("биржи", is_stacked=False),
-        required=False,
-        label="Выберите биржи для скальпинга"
+        required=True,
+        label="Выберите биржи для скальпинга",
+        error_messages={'required': 'Необходимо выбрать хотя бы одну биржу'}
     )
     
     receive_notifications = BooleanField(
