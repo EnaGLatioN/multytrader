@@ -158,18 +158,23 @@ class EntryAdmin(ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
         if request.method == 'GET':
-            exchange_ids = []
-            if obj:
+            session_entry_id = request.session.get('entry_id')
+            has_session = 'selected_exchanges' in request.session and (
+                not obj or session_entry_id == str(obj.id)
+            )
+
+            if has_session:
+                exchange_ids = request.session.get('selected_exchanges', [])
+            elif obj:
                 exchange_ids = list(Order.objects.filter(entry=obj)
                     .values_list('exchange_account__exchange_id', flat=True)
                     .distinct())
-            
-            if not exchange_ids:
-                exchange_ids = request.session.get('selected_exchanges', [])
+            else:
+                exchange_ids = []
 
             if 'exchanges' in form.base_fields:
                 form.base_fields['exchanges'].initial = Exchange.objects.filter(id__in=exchange_ids)
-        
+
         return form
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
