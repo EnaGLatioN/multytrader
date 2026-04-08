@@ -243,16 +243,35 @@ class EntryAdmin(ModelAdmin):
         super().save_related(request, form, formsets, change)
 
         if not change:
-            if not Order.objects.filter(entry=form.instance).exists():
+            selected_exchange_ids = set(request.session.get('selected_exchanges', []))
+            order_exchange_ids = set(
+                Order.objects.filter(entry=form.instance)
+                .values_list('exchange_account__exchange_id', flat=True)
+                .distinct()
+            )
+            selected_exchange_ids = {str(eid) for eid in selected_exchange_ids}
+            order_exchange_ids = {str(eid) for eid in order_exchange_ids}
+
+            missing = selected_exchange_ids - order_exchange_ids
+            if missing:
+                missing_names = list(
+                    Exchange.objects.filter(id__in=missing).values_list('name', flat=True)
+                )
+                raise ValidationError(
+                    f"Не заполнены ордера для бирж: {', '.join(missing_names)}"
+                )
+
+            if not order_exchange_ids:
                 raise ValidationError("Необходимо добавить хотя бы один ордер для выбранных бирж")
+
+            request.session['selected_exchanges'] = []
 
             if form.instance.is_active:
                 self._create_process(str(form.instance.id), form.instance.restart)
     
     def save_model(self, request, obj, form, change):
-        if not change: 
+        if not change:
             obj.trader = request.user
-            request.session['selected_exchanges'] = []
         super().save_model(request, obj, form, change)
     
     def delete_model(self, request, obj):
