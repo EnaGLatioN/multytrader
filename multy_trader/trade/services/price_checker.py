@@ -84,7 +84,7 @@ class PriceChecker:
         url = f"{self.base_url}{endpoint}"
 
         try:
-            response = self.session.get(url, params=params, timeout=10)
+            response = self.session.get(url, params=params, timeout=10, verify=False)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
