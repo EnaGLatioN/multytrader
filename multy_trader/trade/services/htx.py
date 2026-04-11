@@ -20,6 +20,7 @@ def htx_futures_trade(ready_order, **kwargs):
             'secret': ready_order.secret_key,
             'enableRateLimit': True,
             'proxies': proxy.get_proxies() if proxy else None,
+            'verify': False,
             'options': {
                 'defaultType': 'linear',
             }
