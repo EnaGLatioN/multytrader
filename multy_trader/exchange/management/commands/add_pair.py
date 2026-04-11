@@ -148,7 +148,7 @@ class Command(BaseCommand):
         """
 
         url = "https://api.hbdm.com/linear-swap-api/v1/swap_contract_info"
-        response = requests.get(url)
+        response = requests.get(url, verify=False)
         data = response.json()
 
         response.raise_for_status()
