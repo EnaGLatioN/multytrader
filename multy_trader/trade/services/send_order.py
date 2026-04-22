@@ -81,40 +81,63 @@ def update_status_entry(entry, status):
 
 def opening_orders(ready_order_for_send, entry):
 
-    futures = send_order_to_exchange_api(ready_order_for_send.get('LONG', []), exchanges)
-    status_long, success_long_order = progress_check(futures)
-
-    if status_long: # лонги успешно открыты
-        futures = send_order_to_exchange_api(ready_order_for_send.get('SHORT', []), exchanges)
-        status_short, success_short_order = progress_check(futures)
-
-        if status_short: # шорты успешно открыты
-            # Отправить сообщение об успешном открытии
-            # Поменять статус входа
-            update_status_entry(entry, "ACTIVE")
-            send_reply_message(entry, 'Шорты были успешно открыты')
-            return change_trade_type(success_long_order + success_short_order)
-
-        else: # ошибка открытия шортов
-            # Закрыть открывшиеся лонги и шорты
-            reverse_order = change_trade_type(success_long_order + success_short_order)
-            futures = send_order_to_exchange_api(reverse_order, exchanges, reduce_only=True)
-            # поменять статус
-            update_status_entry(entry, "FAILED")
-            # Отправить уведомление
-            send_reply_message(entry, 'Открытые ордера на лонг и шорт успешно были закрыты')
+    all_orders_to_open = ready_order_for_send.get('LONG', []) + ready_order_for_send.get('SHORT', [])
     
-    else: # ошибки открытия лонгов
-        if success_long_order: # Закрыть открывшиеся лонги если есть + отправить сообщение
-            reverse_order = change_trade_type(success_long_order)
-            futures = send_order_to_exchange_api(reverse_order, exchanges, reduce_only=True)
-            update_status_entry(entry, "FAILED")
-            send_reply_message(entry, 'Открытые ордера на лонг успешно были закрыты')
+    futures = send_order_to_exchange_api(all_orders_to_open, exchanges)
+    status_all, success_orders = progress_check(futures)
 
-        else: # отправить сообщение
+    if status_all: #все ордера успешно открыт
+        update_status_entry(entry, "ACTIVE")
+        send_reply_message(entry, 'Все ордера (LONG и SHORT) успешно открыты')
+        return change_trade_type(success_orders)
+
+    else:
+        if success_orders:
+            # Закрываем только то, что успело открыться
+            reverse_orders = change_trade_type(success_orders)
+            send_order_to_exchange_api(reverse_orders, exchanges, reduce_only=True)
+            
             update_status_entry(entry, "FAILED")
-            send_reply_message(entry, 'Ордера на лонг не открылись')
-    return change_trade_type(success_long_order) ###
+            send_reply_message(entry, f'Ошибка при открытии. Успешные ордера ({len(success_orders)}) были закрыты')
+        else:
+            update_status_entry(entry, "FAILED")
+            send_reply_message(entry, 'Ни один ордер не открылся')
+
+
+#    futures = send_order_to_exchange_api(ready_order_for_send.get('LONG', []), exchanges)
+#    status_long, success_long_order = progress_check(futures)
+#
+#    if status_long: # лонги успешно открыты
+#        futures = send_order_to_exchange_api(ready_order_for_send.get('SHORT', []), exchanges)
+#        status_short, success_short_order = progress_check(futures)
+#
+#        if status_short: # шорты успешно открыты
+#            # Отправить сообщение об успешном открытии
+#            # Поменять статус входа
+#            update_status_entry(entry, "ACTIVE")
+#            send_reply_message(entry, 'Шорты были успешно открыты')
+#            return change_trade_type(success_long_order + success_short_order)
+#
+#        else: # ошибка открытия шортов
+#            # Закрыть открывшиеся лонги и шорты
+#            reverse_order = change_trade_type(success_long_order + success_short_order)
+#            futures = send_order_to_exchange_api(reverse_order, exchanges, reduce_only=True)
+#            # поменять статус
+#            update_status_entry(entry, "FAILED")
+#            # Отправить уведомление
+#            send_reply_message(entry, 'Открытые ордера на лонг и шорт успешно были закрыты')
+#    
+#    else: # ошибки открытия лонгов
+#        if success_long_order: # Закрыть открывшиеся лонги если есть + отправить сообщение
+#            reverse_order = change_trade_type(success_long_order)
+#            futures = send_order_to_exchange_api(reverse_order, exchanges, reduce_only=True)
+#            update_status_entry(entry, "FAILED")
+#            send_reply_message(entry, 'Открытые ордера на лонг успешно были закрыты')
+#
+#        else: # отправить сообщение
+#            update_status_entry(entry, "FAILED")
+#            send_reply_message(entry, 'Ордера на лонг не открылись')
+#    return change_trade_type(success_long_order) ###
 
 
 def closed_orders(open_orders, entry):
